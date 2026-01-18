@@ -1,0 +1,29 @@
+.card.no-hover:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.card-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-1);
+    margin-bottom: 0;
+}
+
+.card-content {
+    /* Additional content styling if needed */
+}

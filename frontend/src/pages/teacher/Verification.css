@@ -1,0 +1,143 @@
+.verification-page {
+    padding: 1.5rem;
+}
+
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+}
+
+.filters-card {
+    margin-bottom: 1.5rem;
+}
+
+.filters-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.search-box input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+}
+
+.student-cell,
+.event-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.student-name,
+.event-name {
+    font-weight: 500;
+}
+
+.student-reg,
+.event-type {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+/* Modal Detail Styles */
+.activity-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.detail-section {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+}
+
+.detail-section h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.375rem 0;
+    font-size: 0.875rem;
+}
+
+.detail-row span {
+    color: var(--text-tertiary);
+}
+
+.action-section {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--primary-light);
+}
+
+.action-section h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.action-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btn-success {
+    background: var(--success) !important;
+    color: white !important;
+}
+
+.btn-danger {
+    background: var(--error) !important;
+    color: white !important;
+}

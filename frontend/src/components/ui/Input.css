@@ -1,0 +1,16 @@
+.input-wrapper {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+}
+
+.form-input.has-icon {
+    padding-left: calc(var(--space-3) + 18px + var(--space-2));
+}

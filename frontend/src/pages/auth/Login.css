@@ -1,0 +1,13 @@
+.forgot-password {
+    text-align: right;
+    margin-bottom: var(--space-4);
+}
+
+.forgot-password a {
+    font-size: 0.875rem;
+    color: var(--primary-500);
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
