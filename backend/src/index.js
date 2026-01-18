@@ -1,7 +1,13 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import "dotenv/config";
 import { connectDB } from './lib/db.js';
+
+// ES Module path setup
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Routes
 import authRoutes from './routes/authRoutes.js';
@@ -17,13 +23,15 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: process.env.NODE_ENV === 'production'
+        ? true  // Allow same-origin in production
+        : (process.env.CLIENT_URL || "http://localhost:5173"),
     credentials: true
 }));
 app.use(express.json({ limit: "50mb" })); // Increased for base64 images
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// Routes
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/user", userRoutes);
@@ -35,6 +43,17 @@ app.use("/api/notifications", notificationRoutes);
 app.get("/api/health", (req, res) => {
     res.status(200).json({ status: "ok", message: "Server is running" });
 });
+
+// Serve frontend in production
+if (process.env.NODE_ENV === 'production') {
+    // Serve static files from frontend build
+    app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+
+    // Handle React routing - send all non-API requests to index.html
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
+    });
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
