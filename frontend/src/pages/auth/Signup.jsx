@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../api';
 import { Button, Input, Select } from '../../components/ui';
-import { Mail, Lock, User, Calendar, Hash, BookOpen } from 'lucide-react';
+import { Mail, Lock, User, Calendar, Hash, BookOpen, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
+import signupImage from '../../assets/i.png';
 import './Auth.css';
 
 const Signup = () => {
@@ -155,7 +156,7 @@ const Signup = () => {
                 </div>
 
                 {step === 1 ? (
-                    <form onSubmit={handleSubmit} className="auth-form">
+                    <form onSubmit={handleSubmit} className="auth-form auth-form-green">
                         <Input
                             label="Full Name"
                             name="fullName"
@@ -252,6 +253,7 @@ const Signup = () => {
                             type="submit"
                             loading={loading}
                             fullWidth
+                            className="btn-green"
                         >
                             Send OTP & Register
                         </Button>
@@ -261,8 +263,12 @@ const Signup = () => {
                         </p>
                     </form>
                 ) : (
-                    <form onSubmit={handleVerifyOtp} className="auth-form">
+                    <form onSubmit={handleVerifyOtp} className="auth-form auth-form-green">
                         <div className="otp-info">
+                            <div className="otp-icon-wrapper">
+                                <ShieldCheck size={48} className="text-success" />
+                            </div>
+                            <h3>Verify Your Email</h3>
                             <p>We've sent a 6-digit OTP to</p>
                             <strong>{formData.email}</strong>
                         </div>
@@ -273,13 +279,15 @@ const Signup = () => {
                             onChange={(e) => setOtp(e.target.value)}
                             placeholder="Enter 6-digit OTP"
                             maxLength={6}
-                            className="otp-input"
+                            className="otp-input text-center text-2xl tracking-widest font-bold"
+                            icon={Lock}
                         />
 
                         <Button
                             type="submit"
                             loading={loading}
                             fullWidth
+                            className="btn-green"
                         >
                             Verify & Complete Registration
                         </Button>
@@ -304,26 +312,15 @@ const Signup = () => {
                 )}
             </div>
 
-            <div className="auth-decoration">
-                <div className="decoration-content">
-                    <h2>Track Your Activities</h2>
-                    <p>Manage and track your activity points throughout your academic journey</p>
-                    <div className="decoration-features">
-                        <div className="feature">
-                            <span className="feature-icon">📄</span>
-                            <span>Upload Certificates</span>
-                        </div>
-                        <div className="feature">
-                            <span className="feature-icon">🤖</span>
-                            <span>AI-Powered Extraction</span>
-                        </div>
-                        <div className="feature">
-                            <span className="feature-icon">✅</span>
-                            <span>Easy Verification</span>
-                        </div>
+            {step === 1 && (
+                <div className="auth-decoration auth-decoration-green">
+                    <div className="decoration-content">
+                        <img src={signupImage} alt="Join the community" className="auth-image" />
+                        <h2>Join the Community</h2>
+                        <p>Start tracking your academic journey today</p>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

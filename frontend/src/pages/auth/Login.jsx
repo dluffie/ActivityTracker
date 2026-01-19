@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Button, Input } from '../../components/ui';
 import { Mail, Lock, Hash } from 'lucide-react';
 import toast from 'react-hot-toast';
+import loginImage from '../../assets/Healthy habit-amico.png';
 import './Auth.css';
 
 const Login = () => {
@@ -94,7 +95,7 @@ const Login = () => {
                     <p>Sign in to continue to your dashboard</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="auth-form">
+                <form onSubmit={handleSubmit} className="auth-form auth-form-purple">
                     <Input
                         label="Email or Registration Number"
                         name="identifier"
@@ -124,6 +125,7 @@ const Login = () => {
                         type="submit"
                         loading={loading}
                         fullWidth
+                        className="btn-purple"
                     >
                         Sign In
                     </Button>
@@ -134,24 +136,11 @@ const Login = () => {
                 </form>
             </div>
 
-            <div className="auth-decoration">
+            <div className="auth-decoration auth-decoration-purple">
                 <div className="decoration-content">
-                    <h2>Activity Point Management</h2>
-                    <p>Track, manage, and verify your academic activities seamlessly</p>
-                    <div className="decoration-features">
-                        <div className="feature">
-                            <span className="feature-icon">🎯</span>
-                            <span>Track Your Progress</span>
-                        </div>
-                        <div className="feature">
-                            <span className="feature-icon">📊</span>
-                            <span>Real-time Analytics</span>
-                        </div>
-                        <div className="feature">
-                            <span className="feature-icon">🔔</span>
-                            <span>Instant Notifications</span>
-                        </div>
-                    </div>
+                    <img src={loginImage} alt="Healthy lifestyle" className="auth-image" />
+                    <h2>Track Your Journey</h2>
+                    <p>Manage your activity points and reach your goals</p>
                 </div>
             </div>
         </div>
