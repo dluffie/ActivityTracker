@@ -237,15 +237,6 @@ const Signup = () => {
                         </div>
 
                         <div className="form-row">
-                            <Select
-                                label="Section (Optional)"
-                                name="section"
-                                value={formData.section}
-                                onChange={handleChange}
-                                options={options.sections?.map(s => ({ value: s, label: s })) || []}
-                                placeholder="Select section"
-                            />
-
                             <Input
                                 label="Date of Birth"
                                 name="dob"

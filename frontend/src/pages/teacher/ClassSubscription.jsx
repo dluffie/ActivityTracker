@@ -95,21 +95,14 @@ const ClassSubscription = () => {
                         <h3>{branch}</h3>
                         <div className="semesters-grid">
                             {options.semesters?.map(semester => (
-                                <div key={`${branch}-${semester}`} className="semester-section">
-                                    <h4>Semester {semester}</h4>
-                                    <div className="sections-list">
-                                        {(options.sections?.length > 0 ? options.sections : ['']).map(section => (
-                                            <button
-                                                key={`${branch}-${semester}-${section}`}
-                                                className={`class-btn ${isSelected(branch, semester, section) ? 'selected' : ''}`}
-                                                onClick={() => toggleClass(branch, semester, section)}
-                                            >
-                                                {section || 'All'}
-                                                {isSelected(branch, semester, section) && <Check size={14} />}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
+                                <button
+                                    key={`${branch}-${semester}`}
+                                    className={`semester-btn ${isSelected(branch, semester, '') ? 'selected' : ''}`}
+                                    onClick={() => toggleClass(branch, semester, '')}
+                                >
+                                    {semester}
+                                    {isSelected(branch, semester, '') && <Check size={14} />}
+                                </button>
                             ))}
                         </div>
                     </Card>
