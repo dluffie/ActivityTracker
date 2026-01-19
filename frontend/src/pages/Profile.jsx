@@ -11,7 +11,9 @@ import {
     Camera,
     Save,
     GraduationCap,
-    Building
+    Building,
+    CheckCircle,
+    Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './Profile.css';
@@ -145,9 +147,20 @@ const Profile = () => {
                         </div>
                         <div className="profile-name">
                             <h2>{profile?.fullName}</h2>
-                            <span className={`role-badge badge-${profile?.role}`}>
-                                {profile?.role}
-                            </span>
+                            <div className="profile-badges">
+                                <span className={`role-badge badge-${profile?.role}`}>
+                                    {profile?.role}
+                                </span>
+                                {profile?.role === 'student' && (
+                                    <span className={`verification-badge ${profile?.profileVerified ? 'verified' : 'pending'}`}>
+                                        {profile?.profileVerified ? (
+                                            <><CheckCircle size={14} /> Verified</>
+                                        ) : (
+                                            <><Clock size={14} /> Pending Verification</>
+                                        )}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
 

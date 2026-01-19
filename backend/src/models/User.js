@@ -63,6 +63,19 @@ const userSchema = new mongoose.Schema({
         default: true
     },
 
+    // Profile verification by teacher
+    profileVerified: {
+        type: Boolean,
+        default: false
+    },
+    profileVerifiedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    profileVerifiedAt: {
+        type: Date
+    },
+
     // Teacher-specific: subscribed classes
     subscribedClasses: [{
         branch: String,

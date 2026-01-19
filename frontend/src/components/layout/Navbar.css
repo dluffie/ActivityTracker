@@ -209,3 +209,50 @@
 .dropdown-item.text-error:hover {
     background: rgba(239, 68, 68, 0.1);
 }
+
+/* Profile verification indicator */
+.profile-avatar {
+    position: relative;
+}
+
+.verified-indicator {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
+    background: #22c55e;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-card);
+}
+
+.dropdown-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: var(--space-2);
+}
+
+.dropdown-verification {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.dropdown-verification.verified {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.dropdown-verification.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}

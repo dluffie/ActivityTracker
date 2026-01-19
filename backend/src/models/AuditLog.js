@@ -14,6 +14,8 @@ const auditLogSchema = new mongoose.Schema({
             "user_login",
             "user_verify",
             "profile_update",
+            "profile_verify",
+            "profile_reject",
             "activity_create",
             "activity_approve",
             "activity_reject",

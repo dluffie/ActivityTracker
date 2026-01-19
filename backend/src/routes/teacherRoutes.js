@@ -351,4 +351,162 @@ router.post("/send-reminder", protectRoute, isTeacherOrAdmin, async (req, res) =
     }
 });
 
+// GET /api/teacher/unverified-students - Get students with unverified profiles
+router.get("/unverified-students", protectRoute, isTeacherOrAdmin, async (req, res) => {
+    try {
+        const { page = 1, limit = 20 } = req.query;
+
+        // Base filter: students who are NOT verified
+        const notVerifiedCondition = {
+            $or: [
+                { profileVerified: false },
+                { profileVerified: { $exists: false } },
+                { profileVerified: null }
+            ]
+        };
+
+        let filter = {
+            role: "student",
+            ...notVerifiedCondition
+        };
+
+        // For teachers, filter by subscribed classes using $and
+        if (req.user.role === "teacher" && req.user.subscribedClasses?.length > 0) {
+            const classConditions = req.user.subscribedClasses.map(c => ({
+                branch: c.branch,
+                semester: c.semester,
+                ...(c.section && { section: c.section })
+            }));
+
+            // Combine with $and to ensure both conditions are met
+            filter = {
+                $and: [
+                    { role: "student" },
+                    notVerifiedCondition,
+                    { $or: classConditions }
+                ]
+            };
+        }
+
+        const students = await User.find(filter)
+            .select("-password")
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+
+        const total = await User.countDocuments(filter);
+
+        return res.status(200).json({
+            students,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+
+    } catch (error) {
+        console.error("Error fetching unverified students:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
+// POST /api/teacher/verify-student/:studentId - Verify a student's profile
+router.post("/verify-student/:studentId", protectRoute, isTeacherOrAdmin, async (req, res) => {
+    try {
+        const { studentId } = req.params;
+
+        const student = await User.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+
+        if (student.role !== "student") {
+            return res.status(400).json({ message: "User is not a student" });
+        }
+
+        // Verify the student's profile
+        student.profileVerified = true;
+        student.profileVerifiedBy = req.user._id;
+        student.profileVerifiedAt = new Date();
+        await student.save();
+
+        // Create notification for student
+        await Notification.create({
+            type: "profile_verified",
+            recipient: student._id,
+            sender: req.user._id,
+            title: "Profile Verified",
+            message: "Your profile has been verified by your teacher."
+        });
+
+        // Audit log
+        await AuditLog.create({
+            actor: req.user._id,
+            action: "profile_verify",
+            targetType: "User",
+            targetId: student._id,
+            description: `Verified profile of ${student.fullName} (${student.registrationNumber})`
+        });
+
+        return res.status(200).json({
+            message: "Student profile verified successfully",
+            student: {
+                _id: student._id,
+                fullName: student.fullName,
+                registrationNumber: student.registrationNumber,
+                profileVerified: student.profileVerified
+            }
+        });
+
+    } catch (error) {
+        console.error("Error verifying student:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
+// POST /api/teacher/reject-verification/:studentId - Reject student verification with reason
+router.post("/reject-verification/:studentId", protectRoute, isTeacherOrAdmin, async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const { reason } = req.body;
+
+        if (!reason) {
+            return res.status(400).json({ message: "Rejection reason is required" });
+        }
+
+        const student = await User.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+
+        // Create notification for student with rejection reason
+        await Notification.create({
+            type: "profile_rejected",
+            recipient: student._id,
+            sender: req.user._id,
+            title: "Profile Verification Rejected",
+            message: `Your profile verification was rejected. Reason: ${reason}`
+        });
+
+        // Audit log
+        await AuditLog.create({
+            actor: req.user._id,
+            action: "profile_reject",
+            targetType: "User",
+            targetId: student._id,
+            description: `Rejected profile verification for ${student.fullName}: ${reason}`
+        });
+
+        return res.status(200).json({
+            message: "Verification rejection sent to student"
+        });
+
+    } catch (error) {
+        console.error("Error rejecting verification:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
 export default router;

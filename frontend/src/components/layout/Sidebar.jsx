@@ -7,6 +7,7 @@ import {
     User,
     Users,
     CheckSquare,
+    ShieldCheck,
     Settings,
     BarChart3,
     Mail,
@@ -30,6 +31,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     const teacherLinks = [
         { to: '/teacher', icon: LayoutDashboard, label: 'Dashboard', exact: true },
         { to: '/teacher/verification', icon: CheckSquare, label: 'Verification Queue' },
+        { to: '/teacher/verify-students', icon: ShieldCheck, label: 'Verify Students' },
         { to: '/teacher/students', icon: Users, label: 'My Students' },
         { to: '/teacher/submit', icon: Upload, label: 'Submit for Student' },
         { to: '/teacher/reminders', icon: Mail, label: 'Send Reminders' },

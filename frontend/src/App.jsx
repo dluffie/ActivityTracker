@@ -9,7 +9,7 @@ import { Loading } from './components/ui';
 import { Login, Signup } from './pages/auth';
 
 // Student Pages
-import { StudentDashboard, UploadActivity } from './pages/student';
+import { StudentDashboard, UploadActivity, MyActivities } from './pages/student';
 import Profile from './pages/Profile';
 
 // Teacher Pages
@@ -17,6 +17,7 @@ import {
   TeacherDashboard,
   Verification,
   StudentManagement,
+  StudentVerification,
   ClassSubscription,
   SendReminders
 } from './pages/teacher';
@@ -101,7 +102,7 @@ function AppRoutes() {
       }>
         <Route index element={<StudentDashboard />} />
         <Route path="upload" element={<UploadActivity />} />
-        <Route path="activities" element={<StudentDashboard />} />
+        <Route path="activities" element={<MyActivities />} />
       </Route>
 
       {/* Teacher Routes */}
@@ -112,6 +113,7 @@ function AppRoutes() {
       }>
         <Route index element={<TeacherDashboard />} />
         <Route path="verification" element={<Verification />} />
+        <Route path="verify-students" element={<StudentVerification />} />
         <Route path="students" element={<StudentManagement />} />
         <Route path="classes" element={<ClassSubscription />} />
         <Route path="reminders" element={<SendReminders />} />

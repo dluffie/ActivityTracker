@@ -9,7 +9,9 @@ import {
     Bell,
     LogOut,
     User,
-    ChevronDown
+    ChevronDown,
+    CheckCircle,
+    Clock
 } from 'lucide-react';
 import { useState } from 'react';
 import './Navbar.css';
@@ -75,6 +77,11 @@ const Navbar = ({ onMenuToggle, isSidebarOpen }) => {
                             ) : (
                                 <User size={20} />
                             )}
+                            {user?.role === 'student' && user?.profileVerified && (
+                                <span className="verified-indicator" title="Profile Verified">
+                                    <CheckCircle size={12} />
+                                </span>
+                            )}
                         </div>
                         <span className="profile-name hide-mobile">{user?.fullName}</span>
                         <ChevronDown size={16} className="hide-mobile" />
@@ -85,9 +92,20 @@ const Navbar = ({ onMenuToggle, isSidebarOpen }) => {
                             <div className="dropdown-header">
                                 <p className="dropdown-name">{user?.fullName}</p>
                                 <p className="dropdown-email">{user?.email}</p>
-                                <span className="dropdown-role badge badge-primary">
-                                    {user?.role}
-                                </span>
+                                <div className="dropdown-badges">
+                                    <span className="dropdown-role badge badge-primary">
+                                        {user?.role}
+                                    </span>
+                                    {user?.role === 'student' && (
+                                        <span className={`dropdown-verification ${user?.profileVerified ? 'verified' : 'pending'}`}>
+                                            {user?.profileVerified ? (
+                                                <><CheckCircle size={12} /> Verified</>
+                                            ) : (
+                                                <><Clock size={12} /> Pending</>
+                                            )}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                             <div className="dropdown-divider" />
                             <Link

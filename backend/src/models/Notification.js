@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const notificationSchema = new mongoose.Schema({
     type: {
         type: String,
-        enum: ["reminder", "approval", "rejection", "correction", "system", "registration"],
+        enum: ["reminder", "approval", "rejection", "correction", "system", "registration", "profile_verified", "profile_rejected", "profile_update"],
         required: true
     },
     recipient: {

@@ -1,6 +1,7 @@
 import express from 'express';
 import User from "../models/User.js";
 import AuditLog from "../models/AuditLog.js";
+import Notification from "../models/Notification.js";
 import { protectRoute } from "../middleware/auth.js";
 import cloudinary from "../lib/cloudinary.js";
 
@@ -23,13 +24,23 @@ router.put("/profile", protectRoute, async (req, res) => {
         const { semester, section, phone, profileImage } = req.body;
 
         const updateData = {};
+        let profileFieldsChanged = false; // Track if non-photo fields changed
 
         // Students can update semester (lifecycle change)
-        if (semester) updateData.semester = semester.toUpperCase();
-        if (section) updateData.section = section.toUpperCase();
-        if (phone) updateData.phone = phone;
+        if (semester && semester.toUpperCase() !== req.user.semester) {
+            updateData.semester = semester.toUpperCase();
+            profileFieldsChanged = true;
+        }
+        if (section && section.toUpperCase() !== req.user.section) {
+            updateData.section = section.toUpperCase();
+            profileFieldsChanged = true;
+        }
+        if (phone && phone !== req.user.phone) {
+            updateData.phone = phone;
+            profileFieldsChanged = true;
+        }
 
-        // Handle profile image upload
+        // Handle profile image upload (doesn't reset verification)
         if (profileImage && profileImage.startsWith("data:")) {
             // Delete old image if exists
             if (req.user.profileImage) {
@@ -45,6 +56,37 @@ router.put("/profile", protectRoute, async (req, res) => {
                 ]
             });
             updateData.profileImage = uploadResult.secure_url;
+        }
+
+        // Reset profile verification if non-photo fields changed (for students only)
+        if (profileFieldsChanged && req.user.role === "student" && req.user.profileVerified) {
+            updateData.profileVerified = false;
+            updateData.profileVerifiedBy = null;
+            updateData.profileVerifiedAt = null;
+
+            // Find and notify subscribed teachers
+            const teachers = await User.find({
+                role: "teacher",
+                subscribedClasses: {
+                    $elemMatch: {
+                        branch: req.user.branch,
+                        semester: req.user.semester
+                    }
+                }
+            });
+
+            // Create notifications for teachers
+            const teacherNotifications = teachers.map(teacher => ({
+                type: "profile_update",
+                recipient: teacher._id,
+                sender: req.user._id,
+                title: "Student Profile Updated",
+                message: `${req.user.fullName} (${req.user.registrationNumber}) has updated their profile. Please re-verify.`
+            }));
+
+            if (teacherNotifications.length > 0) {
+                await Notification.insertMany(teacherNotifications);
+            }
         }
 
         const user = await User.findByIdAndUpdate(

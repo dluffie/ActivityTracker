@@ -75,6 +75,10 @@ export const teacherAPI = {
     getPendingRegistrations: (params) => api.get('/teacher/pending-registrations', { params }),
     getDashboardStats: () => api.get('/teacher/dashboard-stats'),
     sendReminder: (data) => api.post('/teacher/send-reminder', data),
+    // Student verification
+    getUnverifiedStudents: (params) => api.get('/teacher/unverified-students', { params }),
+    verifyStudent: (studentId) => api.post(`/teacher/verify-student/${studentId}`),
+    rejectVerification: (studentId, reason) => api.post(`/teacher/reject-verification/${studentId}`, { reason }),
 };
 
 // Admin API
