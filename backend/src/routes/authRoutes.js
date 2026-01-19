@@ -3,10 +3,23 @@ import NewUser from "../models/NewUser.js";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import nodemailer from "nodemailer";
+import { google } from 'googleapis';
 import OtpVerification from '../models/Otp.js';
 
 const router = express.Router();
+
+// Initialize Gmail API with OAuth2
+const oauth2Client = new google.auth.OAuth2(
+    process.env.GMAIL_CLIENT_ID,
+    process.env.GMAIL_CLIENT_SECRET,
+    'https://developers.google.com/oauthplayground'
+);
+
+oauth2Client.setCredentials({
+    refresh_token: process.env.GMAIL_REFRESH_TOKEN
+});
+
+const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
 // Branch and Semester options
 export const BRANCHES = ["CS", "IT", "EE", "ME", "CE", "EC", "CT"];
@@ -17,15 +30,32 @@ const generateToken = (userId) => {
     return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "15d" });
 }
 
-// Email transporter
-const createTransporter = () => {
-    return nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
+// Email sender function using Gmail API
+const sendEmail = async (to, subject, html) => {
+    const emailContent = [
+        `To: ${to}`,
+        `From: Activity Tracker <${process.env.EMAIL_USER}>`,
+        `Subject: ${subject}`,
+        `MIME-Version: 1.0`,
+        `Content-Type: text/html; charset=utf-8`,
+        ``,
+        html
+    ].join('\n');
+
+    const encodedEmail = Buffer.from(emailContent)
+        .toString('base64')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+
+    const response = await gmail.users.messages.send({
+        userId: 'me',
+        requestBody: {
+            raw: encodedEmail
         }
     });
+
+    return response;
 };
 
 // OTP email template
@@ -135,14 +165,12 @@ router.post("/register", async (req, res) => {
             { upsert: true }
         );
 
-        // Send OTP email
-        const transporter = createTransporter();
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: "Verify Your Account - Activity Tracker",
-            html: getOtpEmailHtml(otp)
-        });
+        // Send OTP email using Resend
+        await sendEmail(
+            email,
+            "Verify Your Account - Activity Tracker",
+            getOtpEmailHtml(otp)
+        );
 
         console.log(`OTP sent to ${email}: ${otp}`);
 
@@ -252,14 +280,12 @@ router.post("/resend-otp", async (req, res) => {
             }
         );
 
-        // Send OTP email
-        const transporter = createTransporter();
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: "New OTP - Activity Tracker",
-            html: getOtpEmailHtml(otp)
-        });
+        // Send OTP email using Resend
+        await sendEmail(
+            email,
+            "New OTP - Activity Tracker",
+            getOtpEmailHtml(otp)
+        );
 
         return res.status(200).json({ message: "New OTP sent successfully." });
 

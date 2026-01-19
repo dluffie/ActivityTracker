@@ -1,14 +1,27 @@
 import express from 'express';
+import { google } from 'googleapis';
 import User from "../models/User.js";
 import NewUser from "../models/NewUser.js";
 import Activity from "../models/Activity.js";
 import Notification from "../models/Notification.js";
 import AuditLog from "../models/AuditLog.js";
 import { protectRoute, isTeacher, isTeacherOrAdmin } from "../middleware/auth.js";
-import nodemailer from "nodemailer";
 import { BRANCHES, SEMESTERS, SECTIONS } from "./authRoutes.js";
 
 const router = express.Router();
+
+// Initialize Gmail API with OAuth2
+const oauth2Client = new google.auth.OAuth2(
+    process.env.GMAIL_CLIENT_ID,
+    process.env.GMAIL_CLIENT_SECRET,
+    'https://developers.google.com/oauthplayground'
+);
+
+oauth2Client.setCredentials({
+    refresh_token: process.env.GMAIL_REFRESH_TOKEN
+});
+
+const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
 // POST /api/teacher/subscribe-classes - Subscribe to classes
 router.post("/subscribe-classes", protectRoute, isTeacher, async (req, res) => {
@@ -267,34 +280,44 @@ router.post("/send-reminder", protectRoute, isTeacherOrAdmin, async (req, res) =
             return res.status(400).json({ message: "No valid recipients found" });
         }
 
-        // Send emails
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
-        });
-
-        const emailPromises = users.map(user =>
-            transporter.sendMail({
-                from: process.env.EMAIL_USER,
-                to: user.email,
-                subject: subject,
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                        <h2 style="color: #333;">Hello ${user.fullName},</h2>
-                        <div style="color: #555; line-height: 1.6;">
-                            ${message}
-                        </div>
-                        <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-                        <p style="color: #888; font-size: 12px;">
-                            This email was sent from the Activity Point Management System.
-                        </p>
+        // Send emails using Gmail API
+        const emailPromises = users.map(async (user) => {
+            const htmlContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #333;">Hello ${user.fullName},</h2>
+                    <div style="color: #555; line-height: 1.6;">
+                        ${message}
                     </div>
-                `
-            })
-        );
+                    <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+                    <p style="color: #888; font-size: 12px;">
+                        This email was sent from the Activity Point Management System.
+                    </p>
+                </div>
+            `;
+
+            const emailContent = [
+                `To: ${user.email}`,
+                `From: Activity Tracker <${process.env.EMAIL_USER}>`,
+                `Subject: ${subject}`,
+                `MIME-Version: 1.0`,
+                `Content-Type: text/html; charset=utf-8`,
+                ``,
+                htmlContent
+            ].join('\n');
+
+            const encodedEmail = Buffer.from(emailContent)
+                .toString('base64')
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+
+            return gmail.users.messages.send({
+                userId: 'me',
+                requestBody: {
+                    raw: encodedEmail
+                }
+            });
+        });
 
         await Promise.all(emailPromises);
 

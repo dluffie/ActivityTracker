@@ -3,12 +3,18 @@ import bcrypt from 'bcryptjs';
 import 'dotenv/config';
 import User from './models/User.js';
 
+// Read from environment or use defaults (for local dev only)
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@capms.com";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const TEACHER_EMAIL = process.env.TEACHER_EMAIL || "teacher@capms.com";
+const TEACHER_PASSWORD = process.env.TEACHER_PASSWORD || "teacher123";
+
 // Default accounts to create
 const defaultAccounts = [
     {
         fullName: "Admin User",
-        email: "admin@capms.com",
-        password: "admin123",
+        email: ADMIN_EMAIL,
+        password: ADMIN_PASSWORD,
         dob: new Date("1990-01-01"),
         registrationNumber: "ADMIN001",
         branch: "ADMIN",
@@ -19,8 +25,8 @@ const defaultAccounts = [
     },
     {
         fullName: "Teacher User",
-        email: "teacher@capms.com",
-        password: "teacher123",
+        email: TEACHER_EMAIL,
+        password: TEACHER_PASSWORD,
         dob: new Date("1985-01-01"),
         registrationNumber: "TEACHER001",
         branch: "CS",

@@ -47,7 +47,15 @@ const Signup = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+
+        // Only allow numeric input for registration number
+        if (name === 'registrationNumber') {
+            const numericValue = value.replace(/[^0-9]/g, '');
+            setFormData(prev => ({ ...prev, [name]: numericValue }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
+
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
         }
@@ -69,6 +77,8 @@ const Signup = () => {
 
         if (!formData.registrationNumber.trim()) {
             newErrors.registrationNumber = 'Registration number is required';
+        } else if (!/^\d+$/.test(formData.registrationNumber)) {
+            newErrors.registrationNumber = 'Registration number must contain only numbers';
         }
 
         if (!formData.branch) newErrors.branch = 'Branch is required';
@@ -194,9 +204,12 @@ const Signup = () => {
                         <Input
                             label="Registration Number"
                             name="registrationNumber"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={formData.registrationNumber}
                             onChange={handleChange}
-                            placeholder="e.g., 21CS045"
+                            placeholder="e.g., 12345678"
                             icon={Hash}
                             error={errors.registrationNumber}
                         />
