@@ -7,6 +7,7 @@ import { Loading } from './components/ui';
 
 // Auth Pages
 import { Login, Signup } from './pages/auth';
+import LandingPage from './pages/LandingPage';
 
 // Student Pages
 import { StudentDashboard, UploadActivity, MyActivities } from './pages/student';
@@ -19,7 +20,8 @@ import {
   StudentManagement,
   StudentVerification,
   ClassSubscription,
-  SendReminders
+  SendReminders,
+  SubmitForStudent
 } from './pages/teacher';
 
 // Admin Pages
@@ -117,6 +119,7 @@ function AppRoutes() {
         <Route path="students" element={<StudentManagement />} />
         <Route path="classes" element={<ClassSubscription />} />
         <Route path="reminders" element={<SendReminders />} />
+        <Route path="submit" element={<SubmitForStudent />} />
       </Route>
 
       {/* Admin Routes */}
@@ -140,9 +143,11 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
-      {/* Redirects */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* Landing Page - redirect logged-in users to dashboard */}
+      <Route path="/" element={
+        <PublicRoute><LandingPage /></PublicRoute>
+      } />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

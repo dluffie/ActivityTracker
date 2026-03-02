@@ -32,7 +32,7 @@ const Verification = () => {
     const [filters, setFilters] = useState({ status: 'pending', search: '' });
     const [selectedActivity, setSelectedActivity] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    const [actionLoading, setActionLoading] = useState(false);
+    const [actionLoading, setActionLoading] = useState(null); // null | 'approve' | 'reject' | 'correction' | 'edit'
     const [actionData, setActionData] = useState({ points: '', remarks: '' });
 
     useEffect(() => {
@@ -73,7 +73,7 @@ const Verification = () => {
             return;
         }
 
-        setActionLoading(true);
+        setActionLoading('approve');
         try {
             await activityAPI.approve(selectedActivity._id, {
                 pointsAssigned: parseInt(actionData.points),
@@ -85,7 +85,7 @@ const Verification = () => {
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to approve');
         } finally {
-            setActionLoading(false);
+            setActionLoading(null);
         }
     };
 
@@ -95,7 +95,7 @@ const Verification = () => {
             return;
         }
 
-        setActionLoading(true);
+        setActionLoading('reject');
         try {
             await activityAPI.reject(selectedActivity._id, {
                 reason: actionData.remarks,
@@ -106,7 +106,7 @@ const Verification = () => {
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to reject');
         } finally {
-            setActionLoading(false);
+            setActionLoading(null);
         }
     };
 
@@ -116,7 +116,7 @@ const Verification = () => {
             return;
         }
 
-        setActionLoading(true);
+        setActionLoading('correction');
         try {
             await activityAPI.requestCorrection(selectedActivity._id, {
                 comments: actionData.remarks,
@@ -127,7 +127,7 @@ const Verification = () => {
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to request correction');
         } finally {
-            setActionLoading(false);
+            setActionLoading(null);
         }
     };
 
@@ -137,7 +137,7 @@ const Verification = () => {
             return;
         }
 
-        setActionLoading(true);
+        setActionLoading('edit');
         try {
             await activityAPI.edit(selectedActivity._id, {
                 pointsAssigned: parseInt(actionData.points),
@@ -149,7 +149,7 @@ const Verification = () => {
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to update');
         } finally {
-            setActionLoading(false);
+            setActionLoading(null);
         }
     };
 
@@ -304,6 +304,23 @@ const Verification = () => {
                                     </strong>
                                 </div>
                             </div>
+
+                            {/* AI Suggested Marks */}
+                            {selectedActivity.uploadMode === 'ai' && selectedActivity.pointsSuggested > 0 && (
+                                <div className="detail-section ai-marks-section">
+                                    <h4>✨ AI Suggested Marks</h4>
+                                    <div className="detail-row">
+                                        <span>Suggested Points:</span>
+                                        <strong className="ai-points">{selectedActivity.pointsSuggested}</strong>
+                                    </div>
+                                    {selectedActivity.rawExtractedText && (
+                                        <div className="detail-row">
+                                            <span>AI Notes:</span>
+                                            <strong>{selectedActivity.rawExtractedText}</strong>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {selectedActivity.description && (
@@ -352,22 +369,25 @@ const Verification = () => {
                                     <div className="action-buttons">
                                         <Button
                                             onClick={handleApprove}
-                                            loading={actionLoading}
-                                            className="btn-success"
+                                            loading={actionLoading === 'approve'}
+                                            disabled={actionLoading !== null}
+                                            className="btn-approve"
                                         >
                                             <CheckCircle size={16} /> Approve
                                         </Button>
                                         <Button
                                             onClick={handleRequestCorrection}
-                                            loading={actionLoading}
-                                            variant="secondary"
+                                            loading={actionLoading === 'correction'}
+                                            disabled={actionLoading !== null}
+                                            className="btn-correction"
                                         >
                                             <AlertTriangle size={16} /> Request Correction
                                         </Button>
                                         <Button
                                             onClick={handleReject}
-                                            loading={actionLoading}
-                                            className="btn-danger"
+                                            loading={actionLoading === 'reject'}
+                                            disabled={actionLoading !== null}
+                                            className="btn-reject"
                                         >
                                             <XCircle size={16} /> Reject
                                         </Button>
@@ -401,8 +421,9 @@ const Verification = () => {
                                     <div className="action-buttons">
                                         <Button
                                             onClick={handleEdit}
-                                            loading={actionLoading}
-                                            className="btn-primary"
+                                            loading={actionLoading === 'edit'}
+                                            disabled={actionLoading !== null}
+                                            className="btn-approve"
                                         >
                                             <CheckCircle size={16} /> Save Changes
                                         </Button>

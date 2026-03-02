@@ -3,60 +3,35 @@ import NewUser from "../models/NewUser.js";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { google } from 'googleapis';
 import OtpVerification from '../models/Otp.js';
+import Brevo from '@getbrevo/brevo';
 
 const router = express.Router();
 
-// Initialize Gmail API with OAuth2
-const oauth2Client = new google.auth.OAuth2(
-    process.env.GMAIL_CLIENT_ID,
-    process.env.GMAIL_CLIENT_SECRET,
-    'https://developers.google.com/oauthplayground'
-);
+// Initialize Brevo email API
+const brevoClient = new Brevo.TransactionalEmailsApi();
+brevoClient.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
-oauth2Client.setCredentials({
-    refresh_token: process.env.GMAIL_REFRESH_TOKEN
-});
+// Email sender function using Brevo
+const sendEmail = async (to, subject, html) => {
+    const sendSmtpEmail = new Brevo.SendSmtpEmail();
+    sendSmtpEmail.to = [{ email: to }];
+    sendSmtpEmail.sender = { name: "Activity Tracker", email: process.env.EMAIL_USER };
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = html;
 
-const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    const response = await brevoClient.sendTransacEmail(sendSmtpEmail);
+    return response;
+};
 
 // Branch and Semester options
-export const BRANCHES = ["CS", "IT", "EE", "ME", "CE", "EC", "CT"];
-export const SEMESTERS = ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"];
+export const BRANCHES = ["ME", "CE", "EC", "CT"];
+export const SEMESTERS = ["S1", "S2", "S3", "S4", "S5", "S6"];
 export const SECTIONS = ["A", "B", "C", "D"];
 
 const generateToken = (userId) => {
     return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "15d" });
 }
-
-// Email sender function using Gmail API
-const sendEmail = async (to, subject, html) => {
-    const emailContent = [
-        `To: ${to}`,
-        `From: Activity Tracker <${process.env.EMAIL_USER}>`,
-        `Subject: ${subject}`,
-        `MIME-Version: 1.0`,
-        `Content-Type: text/html; charset=utf-8`,
-        ``,
-        html
-    ].join('\n');
-
-    const encodedEmail = Buffer.from(emailContent)
-        .toString('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
-
-    const response = await gmail.users.messages.send({
-        userId: 'me',
-        requestBody: {
-            raw: encodedEmail
-        }
-    });
-
-    return response;
-};
 
 // OTP email template
 const getOtpEmailHtml = (otp) => `
@@ -105,7 +80,7 @@ const getOtpEmailHtml = (otp) => `
 // POST /api/auth/register - Student registration with new fields
 router.post("/register", async (req, res) => {
     try {
-        const { email, password, fullName, registrationNumber, branch, semester, section, dob } = req.body;
+        const { email, password, fullName, registrationNumber, branch, semester, section, dob, isLateral } = req.body;
 
         // Validation
         if (!email || !password || !fullName || !registrationNumber || !branch || !semester || !dob) {
@@ -159,7 +134,8 @@ router.post("/register", async (req, res) => {
                     branch: branch.toUpperCase(),
                     semester: semester.toUpperCase(),
                     section: section?.toUpperCase() || "",
-                    dob: new Date(dob)
+                    dob: new Date(dob),
+                    isLateral: isLateral || false
                 }
             },
             { upsert: true }
@@ -209,7 +185,7 @@ router.post("/verify-otp", async (req, res) => {
         }
 
         // OTP is valid - create verified user
-        const { fullName, password, registrationNumber, branch, semester, section, dob } = otpRecord.userData;
+        const { fullName, password, registrationNumber, branch, semester, section, dob, isLateral } = otpRecord.userData;
 
         // Hash password
         const salt = await bcrypt.genSalt(10);
@@ -225,7 +201,8 @@ router.post("/verify-otp", async (req, res) => {
             section,
             dob,
             role: "student",
-            verified: true
+            verified: true,
+            isLateral: isLateral || false
         });
 
         await newUser.save();
@@ -244,7 +221,8 @@ router.post("/verify-otp", async (req, res) => {
                 branch: newUser.branch,
                 semester: newUser.semester,
                 section: newUser.section,
-                role: newUser.role
+                role: newUser.role,
+                isLateral: newUser.isLateral
             }
         });
 
@@ -340,7 +318,8 @@ router.post("/login", async (req, res) => {
                 section: user.section,
                 role: user.role,
                 profileImage: user.profileImage,
-                totalPoints: user.totalPoints
+                totalPoints: user.totalPoints,
+                isLateral: user.isLateral
             }
         });
 

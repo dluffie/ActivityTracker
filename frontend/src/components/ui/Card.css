@@ -27,3 +27,11 @@
 .card-content {
     /* Additional content styling if needed */
 }
+
+/* ==================== CYBERPUNK CARD ==================== */
+[data-theme="cyberpunk"] .card-title {
+    font-family: var(--font-cyber);
+    color: #00f0ff;
+    letter-spacing: 0.04em;
+    font-size: 1rem;
+}

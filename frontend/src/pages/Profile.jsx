@@ -152,13 +152,20 @@ const Profile = () => {
                                     {profile?.role}
                                 </span>
                                 {profile?.role === 'student' && (
-                                    <span className={`verification-badge ${profile?.profileVerified ? 'verified' : 'pending'}`}>
-                                        {profile?.profileVerified ? (
-                                            <><CheckCircle size={14} /> Verified</>
-                                        ) : (
-                                            <><Clock size={14} /> Pending Verification</>
+                                    <>
+                                        <span className={`verification-badge ${profile?.profileVerified ? 'verified' : 'pending'}`}>
+                                            {profile?.profileVerified ? (
+                                                <><CheckCircle size={14} /> Verified</>
+                                            ) : (
+                                                <><Clock size={14} /> Pending Verification</>
+                                            )}
+                                        </span>
+                                        {profile?.isLateral && (
+                                            <span className="verification-badge" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+                                                Lateral Entry
+                                            </span>
                                         )}
-                                    </span>
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -251,7 +258,7 @@ const Profile = () => {
                                         <Award size={18} />
                                         <div>
                                             <span className="detail-label">Total Activity Points</span>
-                                            <span className="detail-value points">{profile.totalPoints || 0} / 60</span>
+                                            <span className="detail-value points">{profile.totalPoints || 0} / {profile?.isLateral ? 40 : 60}</span>
                                         </div>
                                     </div>
                                 </>

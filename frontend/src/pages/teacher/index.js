@@ -4,3 +4,4 @@ export { default as StudentManagement } from './StudentManagement';
 export { default as StudentVerification } from './StudentVerification';
 export { default as ClassSubscription } from './ClassSubscription';
 export { default as SendReminders } from './SendReminders';
+export { default as SubmitForStudent } from './SubmitForStudent';

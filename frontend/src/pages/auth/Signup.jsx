@@ -25,6 +25,7 @@ const Signup = () => {
         semester: '',
         section: '',
         dob: '',
+        isLateral: false,
     });
 
     const [otp, setOtp] = useState('');
@@ -47,7 +48,12 @@ const Signup = () => {
     };
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
+
+        if (type === 'checkbox') {
+            setFormData(prev => ({ ...prev, [name]: checked }));
+            return;
+        }
 
         // Only allow numeric input for registration number
         if (name === 'registrationNumber') {
@@ -106,6 +112,7 @@ const Signup = () => {
                 semester: formData.semester,
                 section: formData.section,
                 dob: formData.dob,
+                isLateral: formData.isLateral,
             });
 
             toast.success('OTP sent to your email!');
@@ -249,6 +256,22 @@ const Signup = () => {
                             />
                         </div>
 
+                        <div className="lateral-entry-option">
+                            <label className="lateral-checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    name="isLateral"
+                                    checked={formData.isLateral}
+                                    onChange={handleChange}
+                                    className="lateral-checkbox"
+                                />
+                                <span className="lateral-checkbox-text">
+                                    I am a <strong>Lateral Entry</strong> student
+                                    <span className="lateral-hint">(Only 40 activity points required instead of 60)</span>
+                                </span>
+                            </label>
+                        </div>
+
                         <Button
                             type="submit"
                             loading={loading}
@@ -266,28 +289,67 @@ const Signup = () => {
                     <form onSubmit={handleVerifyOtp} className="auth-form auth-form-green">
                         <div className="otp-info">
                             <div className="otp-icon-wrapper">
-                                <ShieldCheck size={48} className="text-success" />
+                                <ShieldCheck size={40} className="text-success" />
                             </div>
                             <h3>Verify Your Email</h3>
                             <p>We've sent a 6-digit OTP to</p>
                             <strong>{formData.email}</strong>
                         </div>
 
-                        <Input
-                            label="Enter OTP"
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value)}
-                            placeholder="Enter 6-digit OTP"
-                            maxLength={6}
-                            className="otp-input text-center text-2xl tracking-widest font-bold"
-                            icon={Lock}
-                        />
+                        <div className="otp-spam-warning">
+                            <Mail size={16} />
+                            <span>Can't find it? <strong>Check your Spam / Junk folder!</strong></span>
+                        </div>
+
+                        <div className="otp-input-section">
+                            <label className="otp-input-label">Enter OTP</label>
+                            <div className="otp-digit-wrapper">
+                                {[...Array(6)].map((_, i) => (
+                                    <input
+                                        key={i}
+                                        type="text"
+                                        inputMode="numeric"
+                                        maxLength={1}
+                                        className="otp-digit-box"
+                                        value={otp[i] || ''}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/[^0-9]/g, '');
+                                            const newOtp = otp.split('');
+                                            newOtp[i] = val;
+                                            setOtp(newOtp.join(''));
+                                            // Auto-focus next input
+                                            if (val && i < 5) {
+                                                const next = e.target.parentElement.children[i + 1];
+                                                if (next) next.focus();
+                                            }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Backspace' && !otp[i] && i > 0) {
+                                                const prev = e.target.parentElement.children[i - 1];
+                                                if (prev) prev.focus();
+                                            }
+                                        }}
+                                        onPaste={(e) => {
+                                            e.preventDefault();
+                                            const pasted = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+                                            setOtp(pasted);
+                                            // Focus last filled or last box
+                                            const boxes = e.target.parentElement.children;
+                                            const focusIdx = Math.min(pasted.length, 5);
+                                            if (boxes[focusIdx]) boxes[focusIdx].focus();
+                                        }}
+                                        autoFocus={i === 0}
+                                    />
+                                ))}
+                            </div>
+                        </div>
 
                         <Button
                             type="submit"
                             loading={loading}
                             fullWidth
                             className="btn-green"
+                            disabled={otp.length !== 6}
                         >
                             Verify & Complete Registration
                         </Button>
@@ -295,14 +357,15 @@ const Signup = () => {
                         <div className="otp-actions">
                             <button
                                 type="button"
-                                className="btn btn-ghost"
+                                className="otp-action-btn"
                                 onClick={handleResendOtp}
                             >
-                                Resend OTP
+                                <Mail size={15} /> Resend OTP
                             </button>
+                            <span className="otp-action-divider">|</span>
                             <button
                                 type="button"
-                                className="btn btn-ghost"
+                                className="otp-action-btn"
                                 onClick={() => setStep(1)}
                             >
                                 Go Back

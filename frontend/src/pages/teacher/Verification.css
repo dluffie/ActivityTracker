@@ -132,12 +132,59 @@
     flex-wrap: wrap;
 }
 
-.btn-success {
-    background: var(--success) !important;
-    color: white !important;
+/* Approve Button - Green */
+.btn-approve {
+    background: #16a34a !important;
+    border-color: #16a34a !important;
+    color: #ffffff !important;
 }
 
-.btn-danger {
-    background: var(--error) !important;
-    color: white !important;
+.btn-approve:hover:not(:disabled) {
+    background: #15803d !important;
+    border-color: #15803d !important;
+}
+
+/* Correction Button - Amber */
+.btn-correction {
+    background: #d97706 !important;
+    border-color: #d97706 !important;
+    color: #ffffff !important;
+}
+
+.btn-correction:hover:not(:disabled) {
+    background: #b45309 !important;
+    border-color: #b45309 !important;
+}
+
+/* Reject Button - Red */
+.btn-reject {
+    background: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: #ffffff !important;
+}
+
+.btn-reject:hover:not(:disabled) {
+    background: #b91c1c !important;
+    border-color: #b91c1c !important;
+}
+
+/* Disabled state for all action buttons */
+.action-buttons .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* AI Marks Section */
+.ai-marks-section {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.08)) !important;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.ai-marks-section h4 {
+    color: #7c3aed !important;
+}
+
+.ai-points {
+    color: #6366f1;
+    font-size: 1.25rem;
 }

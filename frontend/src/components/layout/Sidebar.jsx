@@ -95,11 +95,12 @@ const Sidebar = ({ isOpen, onClose }) => {
                                     <div className="progress">
                                         <div
                                             className="progress-bar"
-                                            style={{ width: `${Math.min((user?.totalPoints || 0) / 60 * 100, 100)}%` }}
+                                            style={{ width: `${Math.min((user?.totalPoints || 0) / (user?.isLateral ? 40 : 60) * 100, 100)}%` }}
                                         />
                                     </div>
                                     <span className="stat-label">
-                                        {user?.totalPoints || 0}/60 points required
+                                        {user?.totalPoints || 0}/{user?.isLateral ? 40 : 60} points required
+                                        {user?.isLateral && ' (Lateral)'}
                                     </span>
                                 </div>
                             </>

@@ -50,6 +50,7 @@ export const authAPI = {
 // Activity API
 export const activityAPI = {
     upload: (data) => api.post('/activity/upload', data),
+    aiExtract: (data) => api.post('/activity/ai-extract', data),
     getMy: (params) => api.get('/activity/my', { params }),
     getPending: (params) => api.get('/activity/pending', { params }),
     getOne: (id) => api.get(`/activity/${id}`),

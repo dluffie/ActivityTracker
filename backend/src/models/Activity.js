@@ -32,11 +32,21 @@ const activitySchema = new mongoose.Schema({
         type: String,
         required: true,
         enum: [
+            // New categories (college manual)
+            "ncc",
+            "nss",
+            "disaster_management",
             "sports",
             "cultural",
+            "online_courses",
+            "competitions",
+            "conferences",
+            "paper_presentation",
+            "leadership",
+            "entrepreneurship",
+            "custom",
+            // Legacy values (backward compatibility)
             "technical",
-            "nss",
-            "ncc",
             "internship",
             "workshop",
             "seminar",
@@ -57,12 +67,12 @@ const activitySchema = new mongoose.Schema({
     },
     level: {
         type: String,
-        enum: ["college", "district", "state", "national", "international"],
+        enum: ["college", "zonal", "district", "state", "national", "international"],
         required: true
     },
     position: {
         type: String,
-        enum: ["first", "second", "third", "participant", "organizer", ""],
+        enum: ["first", "second", "third", "participant", "organizer", "coordinator", "sub_coordinator", "volunteer", "chairman", "secretary", "council_member", "class_representative", ""],
         default: ""
     },
     organization: {
@@ -110,7 +120,7 @@ const activitySchema = new mongoose.Schema({
     // Document (Cloudinary URL)
     docUrl: {
         type: String,
-        required: true
+        default: ""
     },
     docPublicId: {
         type: String // Cloudinary public ID for deletion

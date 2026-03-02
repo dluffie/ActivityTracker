@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { activityAPI } from '../../api';
 import { Card, Loading, Pagination, Button, Modal } from '../../components/ui';
+import useClickSound from '../../hooks/useClickSound';
 import {
     FileText,
     Clock,
@@ -12,13 +13,15 @@ import {
     Download,
     Upload,
     Award,
-    Filter
+    Filter,
+    UserCheck
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import './MyActivities.css';
 
 const MyActivities = () => {
+    const { playClick, playHover } = useClickSound();
     const [loading, setLoading] = useState(true);
     const [activities, setActivities] = useState([]);
     const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, pages: 1 });
@@ -86,6 +89,7 @@ const MyActivities = () => {
     };
 
     const openActivityDetails = (activity) => {
+        playClick();
         setSelectedActivity(activity);
         setShowModal(true);
     };
@@ -101,7 +105,7 @@ const MyActivities = () => {
                     <h1><FileText size={28} /> My Activities</h1>
                     <p>View all your uploaded activities and their status</p>
                 </div>
-                <Link to="/student/upload" className="btn btn-primary">
+                <Link to="/student/upload" className="btn btn-primary" onClick={playClick} onMouseEnter={playHover}>
                     <Upload size={18} /> Upload New
                 </Link>
             </div>
@@ -113,9 +117,11 @@ const MyActivities = () => {
                         key={f}
                         className={`filter-tab ${filter === f ? 'active' : ''}`}
                         onClick={() => {
+                            playClick();
                             setFilter(f);
                             setPagination(prev => ({ ...prev, page: 1 }));
                         }}
+                        onMouseEnter={playHover}
                     >
                         {f === 'all' ? 'All' :
                             f === 'correction_needed' ? 'Needs Correction' :
@@ -130,7 +136,7 @@ const MyActivities = () => {
                     <>
                         <div className="activities-list">
                             {activities.map((activity) => (
-                                <div key={activity._id} className="activity-item" onClick={() => openActivityDetails(activity)}>
+                                <div key={activity._id} className="activity-item" onClick={() => openActivityDetails(activity)} onMouseEnter={playHover}>
                                     <div className="activity-icon">
                                         {getStatusIcon(activity.status)}
                                     </div>
@@ -141,11 +147,16 @@ const MyActivities = () => {
                                             <span>•</span>
                                             <span>{activity.level}</span>
                                             <span>•</span>
-                                            <span><Calendar size={14} /> {formatDate(activity.eventDate)}</span>
+                                            <span><Calendar size={14} /> {formatDate(activity.startDate || activity.eventDate)}</span>
+                                            {activity.submittedByRole === 'teacher' && activity.submittedBy && (
+                                                <span className="teacher-submitted-tag">
+                                                    <UserCheck size={13} /> Submitted by TR {activity.submittedBy?.fullName || ''}
+                                                </span>
+                                            )}
                                         </p>
-                                        {activity.correctionNote && (
+                                        {activity.teacherComments && activity.status === 'correction_needed' && (
                                             <p className="correction-note">
-                                                <AlertTriangle size={14} /> {activity.correctionNote}
+                                                <AlertTriangle size={14} /> {activity.teacherComments}
                                             </p>
                                         )}
                                     </div>
@@ -224,6 +235,14 @@ const MyActivities = () => {
                                 <label>Submitted On</label>
                                 <span>{formatDate(selectedActivity.createdAt)}</span>
                             </div>
+                            {selectedActivity.submittedByRole === 'teacher' && selectedActivity.submittedBy && (
+                                <div className="detail-item">
+                                    <label>Submitted By</label>
+                                    <span className="teacher-submitted-tag modal-tag">
+                                        <UserCheck size={14} /> TR {selectedActivity.submittedBy?.fullName || 'Teacher'}
+                                    </span>
+                                </div>
+                            )}
                             {selectedActivity.status === 'approved' && (
                                 <div className="detail-item highlight">
                                     <label>Points Earned</label>

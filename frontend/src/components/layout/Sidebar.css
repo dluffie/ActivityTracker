@@ -111,3 +111,57 @@
         transform: translateX(0);
     }
 }
+
+/* ==================== CYBERPUNK SIDEBAR ==================== */
+[data-theme="cyberpunk"] .sidebar {
+    background: #08081a;
+    border-right: 1px solid rgba(0, 240, 255, 0.12);
+    box-shadow: 2px 0 15px rgba(0, 240, 255, 0.05);
+}
+
+[data-theme="cyberpunk"] .sidebar::after {
+    content: '';
+    position: absolute;
+    top: 70px;
+    right: 0;
+    width: 1px;
+    height: calc(100% - 70px);
+    background: linear-gradient(180deg, rgba(0, 240, 255, 0.4), transparent, rgba(255, 0, 255, 0.4));
+}
+
+[data-theme="cyberpunk"] .sidebar-link {
+    color: #6a7a9a;
+    font-family: var(--font-cyber);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+[data-theme="cyberpunk"] .sidebar-link:hover {
+    background: rgba(0, 240, 255, 0.06);
+    color: #00f0ff;
+    border-color: rgba(0, 240, 255, 0.15);
+}
+
+[data-theme="cyberpunk"] .sidebar-link.active {
+    background: rgba(0, 240, 255, 0.1);
+    color: #00f0ff;
+    border-color: rgba(0, 240, 255, 0.3);
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.15),
+        inset 0 0 12px rgba(0, 240, 255, 0.05);
+}
+
+[data-theme="cyberpunk"] .sidebar-link.active:hover {
+    background: rgba(0, 240, 255, 0.15);
+    border-color: rgba(0, 240, 255, 0.4);
+}
+
+[data-theme="cyberpunk"] .sidebar-footer {
+    border-top: 1px solid rgba(0, 240, 255, 0.1);
+}
+
+[data-theme="cyberpunk"] .stat-item {
+    background: rgba(0, 240, 255, 0.05);
+    border: 1px solid rgba(0, 240, 255, 0.1);
+}

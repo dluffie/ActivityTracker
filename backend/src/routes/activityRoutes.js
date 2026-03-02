@@ -6,8 +6,78 @@ import Notification from "../models/Notification.js";
 import AuditLog from "../models/AuditLog.js";
 import { protectRoute, isTeacherOrAdmin } from "../middleware/auth.js";
 import cloudinary from "../lib/cloudinary.js";
+import { extractActivityFromDocument } from "../lib/gemini.js";
 
 const router = express.Router();
+
+// POST /api/activity/ai-extract - Extract activity details from document using AI
+router.post("/ai-extract", protectRoute, async (req, res) => {
+    try {
+        const { docBase64 } = req.body;
+
+        if (!docBase64) {
+            return res.status(400).json({ message: "No document provided" });
+        }
+
+        if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
+            return res.status(500).json({ message: "AI extraction is not configured. Please set GEMINI_API_KEY." });
+        }
+
+        // Rate limiting: 3 per day, 1 hour cooldown between uses
+        const user = await User.findById(req.user._id);
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        // Filter to only today's extractions
+        const todayExtractions = (user.aiExtractions || []).filter(
+            (date) => new Date(date) >= todayStart
+        );
+
+        // Check daily limit (3 per day)
+        if (todayExtractions.length >= 3) {
+            return res.status(429).json({
+                message: "Daily AI extraction limit reached (3/day). Try again tomorrow.",
+                remaining: 0,
+                resetAt: new Date(todayStart.getTime() + 24 * 60 * 60 * 1000)
+            });
+        }
+
+        // Check 1-hour cooldown
+        if (todayExtractions.length > 0) {
+            const lastExtraction = new Date(Math.max(...todayExtractions.map(d => new Date(d).getTime())));
+            const hoursSince = (now - lastExtraction) / (1000 * 60 * 60);
+
+            if (hoursSince < 1) {
+                const nextAvailable = new Date(lastExtraction.getTime() + 60 * 60 * 1000);
+                const minutesLeft = Math.ceil((nextAvailable - now) / (1000 * 60));
+                return res.status(429).json({
+                    message: `Please wait ${minutesLeft} minute(s) before next AI extraction.`,
+                    remaining: 3 - todayExtractions.length,
+                    nextAvailableAt: nextAvailable
+                });
+            }
+        }
+
+        const extractedData = await extractActivityFromDocument(docBase64);
+
+        // Record this extraction
+        await User.findByIdAndUpdate(req.user._id, {
+            $push: { aiExtractions: now }
+        });
+
+        return res.status(200).json({
+            message: "Document analyzed successfully",
+            data: extractedData,
+            remaining: 3 - todayExtractions.length - 1
+        });
+
+    } catch (error) {
+        console.error("AI extraction error:", error);
+        return res.status(500).json({
+            message: "AI extraction failed: " + error.message
+        });
+    }
+});
 
 // Helper: Calculate suggested points based on rules
 const calculatePoints = async (activityType, level, position) => {
@@ -40,9 +110,15 @@ router.post("/upload", protectRoute, async (req, res) => {
             studentId // Optional: for faculty submissions
         } = req.body;
 
-        // Validation
-        if (!activityType || !eventName || !level || !startDate || !docBase64) {
+        // Determine if this is a teacher/admin submission for a student
+        const isTeacherSubmission = studentId && (req.user.role === "teacher" || req.user.role === "admin");
+
+        // Validation - docBase64 is optional for teacher submissions
+        if (!activityType || !eventName || !level || !startDate) {
             return res.status(400).json({ message: "Required fields missing" });
+        }
+        if (!isTeacherSubmission && !docBase64) {
+            return res.status(400).json({ message: "Document is required" });
         }
 
         // Determine which student this activity is for
@@ -50,7 +126,7 @@ router.post("/upload", protectRoute, async (req, res) => {
         let submittedByRole = req.user.role;
 
         // If teacher/admin is submitting for a student
-        if (studentId && (req.user.role === "teacher" || req.user.role === "admin")) {
+        if (isTeacherSubmission) {
             const student = await User.findById(studentId);
             if (!student || student.role !== "student") {
                 return res.status(400).json({ message: "Invalid student" });
@@ -58,14 +134,24 @@ router.post("/upload", protectRoute, async (req, res) => {
             targetStudentId = studentId;
         }
 
-        // Upload document to Cloudinary
-        const uploadResult = await cloudinary.uploader.upload(docBase64, {
-            folder: "activity_documents",
-            resource_type: "auto"
-        });
+        // Upload document to Cloudinary (if provided)
+        let docUrl = "";
+        let docPublicId = "";
+        if (docBase64) {
+            const uploadResult = await cloudinary.uploader.upload(docBase64, {
+                folder: "activity_documents",
+                resource_type: "auto"
+            });
+            docUrl = uploadResult.secure_url;
+            docPublicId = uploadResult.public_id;
+        }
 
         // Calculate suggested points
         const pointsSuggested = await calculatePoints(activityType, level, position || "participant");
+
+        // For teacher submissions: auto-approve
+        const activityStatus = isTeacherSubmission ? "approved" : "pending";
+        const pointsAssigned = isTeacherSubmission ? pointsSuggested : 0;
 
         // Create activity
         const activity = new Activity({
@@ -82,12 +168,35 @@ router.post("/upload", protectRoute, async (req, res) => {
             startDate: new Date(startDate),
             endDate: endDate ? new Date(endDate) : null,
             pointsSuggested,
-            docUrl: uploadResult.secure_url,
-            docPublicId: uploadResult.public_id,
-            status: "pending"
+            pointsAssigned,
+            docUrl: docUrl || "https://via.placeholder.com/400x300?text=No+Document",
+            docPublicId: docPublicId || "",
+            status: activityStatus,
+            ...(isTeacherSubmission && {
+                verifiedBy: req.user._id,
+                verifiedAt: new Date()
+            })
         });
 
         await activity.save();
+
+        // If teacher submission: update student points and send notification
+        if (isTeacherSubmission) {
+            // Update student's total points
+            await User.findByIdAndUpdate(targetStudentId, {
+                $inc: { totalPoints: pointsAssigned }
+            });
+
+            // Create notification for student
+            await Notification.create({
+                type: "teacher_submission",
+                recipient: targetStudentId,
+                sender: req.user._id,
+                title: "Activity Submitted by Teacher",
+                message: `Your teacher ${req.user.fullName} submitted and approved "${eventName}" with ${pointsAssigned} points.`,
+                link: `/student/activities`
+            });
+        }
 
         // Create audit log
         await AuditLog.create({
@@ -95,11 +204,13 @@ router.post("/upload", protectRoute, async (req, res) => {
             action: "activity_create",
             targetType: "Activity",
             targetId: activity._id,
-            description: `Activity "${eventName}" created`
+            description: `Activity "${eventName}" created${isTeacherSubmission ? ' (auto-approved by teacher)' : ''}`
         });
 
         return res.status(201).json({
-            message: "Activity submitted successfully",
+            message: isTeacherSubmission
+                ? "Activity submitted and approved for student"
+                : "Activity submitted successfully",
             activity
         });
 
@@ -122,7 +233,8 @@ router.get("/my", protectRoute, async (req, res) => {
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit))
-            .populate("verifiedBy", "fullName");
+            .populate("verifiedBy", "fullName")
+            .populate("submittedBy", "fullName role");
 
         const total = await Activity.countDocuments(filter);
 

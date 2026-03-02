@@ -83,11 +83,22 @@ const userSchema = new mongoose.Schema({
         section: String
     }],
 
+    // Lateral entry student (needs only 40 points instead of 60)
+    isLateral: {
+        type: Boolean,
+        default: false
+    },
+
     // Points tracking (for students)
     totalPoints: {
         type: Number,
         default: 0
     },
+
+    // AI extraction rate limiting
+    aiExtractions: [{
+        type: Date
+    }],
 
     createdAt: {
         type: Date,
