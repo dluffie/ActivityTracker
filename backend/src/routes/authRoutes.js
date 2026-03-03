@@ -319,7 +319,8 @@ router.post("/login", async (req, res) => {
                 role: user.role,
                 profileImage: user.profileImage,
                 totalPoints: user.totalPoints,
-                isLateral: user.isLateral
+                isLateral: user.isLateral,
+                profileVerified: user.profileVerified || false
             }
         });
 

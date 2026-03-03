@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { teacherAPI, notificationAPI } from '../../api';
 import { Card, Loading } from '../../components/ui';
+import useDataCache from '../../hooks/useDataCache';
 import {
     Users,
     CheckSquare,
@@ -23,46 +24,48 @@ import './TeacherDashboard.css';
 
 const TeacherDashboard = () => {
     const { user } = useAuth();
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState(null);
-    const [recentActivities, setRecentActivities] = useState([]);
-    const [notifications, setNotifications] = useState([]);
     const [needsSubscription, setNeedsSubscription] = useState(false);
+    const [subscriptionChecked, setSubscriptionChecked] = useState(false);
 
+    // Check subscription on mount
     useEffect(() => {
-        checkSubscription();
+        const checkSub = async () => {
+            try {
+                const classesRes = await teacherAPI.getMyClasses();
+                if (!classesRes.data.classes?.length) {
+                    setNeedsSubscription(true);
+                }
+            } catch (error) {
+                toast.error('Failed to load data');
+            } finally {
+                setSubscriptionChecked(true);
+            }
+        };
+        checkSub();
     }, []);
 
-    const checkSubscription = async () => {
-        try {
-            const classesRes = await teacherAPI.getMyClasses();
-            if (!classesRes.data.classes?.length) {
-                setNeedsSubscription(true);
-                setLoading(false);
-                return;
-            }
-            fetchDashboardData();
-        } catch (error) {
-            toast.error('Failed to load data');
-            setLoading(false);
-        }
-    };
+    const fetchDashboardFn = useCallback(async () => {
+        const [dashRes, notifRes] = await Promise.all([
+            teacherAPI.getDashboardStats(),
+            notificationAPI.getAll({ limit: 5 })
+        ]);
+        return {
+            stats: dashRes.data.stats,
+            recentActivities: dashRes.data.recentActivities || [],
+            notifications: notifRes.data.notifications || [],
+        };
+    }, []);
 
-    const fetchDashboardData = async () => {
-        try {
-            const [dashRes, notifRes] = await Promise.all([
-                teacherAPI.getDashboardStats(),
-                notificationAPI.getAll({ limit: 5 })
-            ]);
-            setStats(dashRes.data.stats);
-            setRecentActivities(dashRes.data.recentActivities || []);
-            setNotifications(notifRes.data.notifications || []);
-        } catch (error) {
-            toast.error('Failed to load dashboard');
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { data: dashData, loading: dataLoading } = useDataCache(
+        'teacher-dashboard',
+        fetchDashboardFn,
+        { deps: [subscriptionChecked] }
+    );
+
+    const loading = !subscriptionChecked || (dataLoading && !dashData);
+    const stats = dashData?.stats || null;
+    const recentActivities = dashData?.recentActivities || [];
+    const notifications = dashData?.notifications || [];
 
     if (loading) {
         return <Loading fullScreen text="Loading dashboard..." />;

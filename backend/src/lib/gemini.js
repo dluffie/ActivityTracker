@@ -2,6 +2,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// Models to try in order: best first, then fallback
+const MODELS = ["gemini-2.5-flash", "gemini-3-preview"];
+
 const MASTER_PROMPT = `You are an AI system that verifies student activity documents based on the official activity points table of GPC Kothamangalam.
 
 When a user uploads a document (certificate, letter, appreciation letter, or proof document), you must:
@@ -61,45 +64,68 @@ Rules:
 
 /**
  * Extract activity details from a document image using Gemini Vision
+ * Tries the best model first, falls back to secondary model on error.
  * @param {string} base64Data - Full data URL (data:image/png;base64,...)
  * @returns {object} Parsed JSON with extracted activity data
  */
 export async function extractActivityFromDocument(base64Data) {
-    try {
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-        // Parse the base64 data URL
-        const matches = base64Data.match(/^data:(.+);base64,(.+)$/);
-        if (!matches) {
-            throw new Error("Invalid base64 data URL format");
-        }
-
-        const mimeType = matches[1];
-        const imageData = matches[2];
-
-        const result = await model.generateContent([
-            MASTER_PROMPT,
-            {
-                inlineData: {
-                    mimeType,
-                    data: imageData,
-                },
-            },
-        ]);
-
-        const response = result.response;
-        const text = response.text().trim();
-
-        // Clean up response: remove code fences if present
-        let jsonText = text;
-        if (jsonText.startsWith("```")) {
-            jsonText = jsonText.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
-        }
-
-        const parsed = JSON.parse(jsonText);
-        return parsed;
-    } catch (error) {
-        console.error("Gemini extraction error:", error);
-        throw new Error("Failed to extract data from document: " + error.message);
+    // Parse the base64 data URL
+    const matches = base64Data.match(/^data:(.+);base64,(.+)$/);
+    if (!matches) {
+        throw new Error("Invalid document format. Please upload a valid image or PDF.");
     }
+
+    const mimeType = matches[1];
+    const imageData = matches[2];
+
+    let lastError = null;
+
+    for (const modelName of MODELS) {
+        try {
+            console.log(`[Gemini] Trying model: ${modelName}`);
+            const model = genAI.getGenerativeModel({ model: modelName });
+
+            const result = await model.generateContent([
+                MASTER_PROMPT,
+                {
+                    inlineData: {
+                        mimeType,
+                        data: imageData,
+                    },
+                },
+            ]);
+
+            const response = result.response;
+            const text = response.text().trim();
+
+            // Clean up response: remove code fences if present
+            let jsonText = text;
+            if (jsonText.startsWith("```")) {
+                jsonText = jsonText.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
+            }
+
+            const parsed = JSON.parse(jsonText);
+            console.log(`[Gemini] Successfully extracted using model: ${modelName}`);
+            return parsed;
+        } catch (error) {
+            console.error(`[Gemini] Model ${modelName} failed:`, error.message);
+            lastError = error;
+            // Continue to next model
+        }
+    }
+
+    // All models failed — throw a clean error
+    const errorMsg = lastError?.message || "Unknown error";
+
+    if (errorMsg.includes("429") || errorMsg.includes("quota") || errorMsg.includes("rate")) {
+        throw new Error("AI service is temporarily rate-limited. Please try again in a few minutes.");
+    }
+    if (errorMsg.includes("403") || errorMsg.includes("permission")) {
+        throw new Error("AI service access denied. Please contact the administrator.");
+    }
+    if (errorMsg.includes("JSON") || errorMsg.includes("parse")) {
+        throw new Error("AI could not parse the document. Please upload a clearer image.");
+    }
+
+    throw new Error("AI extraction service is temporarily unavailable. Please try again later or fill the form manually.");
 }

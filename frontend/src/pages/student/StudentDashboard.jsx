@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { activityAPI } from '../../api';
 import { Card, Loading } from '../../components/ui';
 import useClickSound from '../../hooks/useClickSound';
+import useDataCache from '../../hooks/useDataCache';
 import anime from 'animejs';
 import {
     TrendingUp,
@@ -34,16 +35,21 @@ const StudentDashboard = () => {
     const { user } = useAuth();
     const { theme, setTheme, isCyberpunk } = useTheme();
     const { playClick, playHover } = useClickSound();
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState(null);
-    const [recentActivities, setRecentActivities] = useState([]);
     const dashboardRef = useRef(null);
     const statsRef = useRef(null);
     const counterRefs = useRef([]);
 
-    useEffect(() => {
-        fetchDashboardData();
+    const fetchDashboardFn = useCallback(async () => {
+        const [statsRes, activitiesRes] = await Promise.all([
+            activityAPI.getStats(),
+            activityAPI.getMy({ limit: 5 })
+        ]);
+        return { stats: statsRes.data, recentActivities: activitiesRes.data.activities };
     }, []);
+
+    const { data: dashData, loading } = useDataCache('student-dashboard', fetchDashboardFn);
+    const stats = dashData?.stats || null;
+    const recentActivities = dashData?.recentActivities || [];
 
     // Anime.js entrance animations
     useEffect(() => {
@@ -119,20 +125,7 @@ const StudentDashboard = () => {
         }
     }, [loading, stats]);
 
-    const fetchDashboardData = async () => {
-        try {
-            const [statsRes, activitiesRes] = await Promise.all([
-                activityAPI.getStats(),
-                activityAPI.getMy({ limit: 5 })
-            ]);
-            setStats(statsRes.data);
-            setRecentActivities(activitiesRes.data.activities);
-        } catch (error) {
-            toast.error('Failed to load dashboard data');
-        } finally {
-            setLoading(false);
-        }
-    };
+    // fetchDashboardData moved to useDataCache above
 
     const getStatusCounts = () => {
         if (!stats?.byStatus) return { pending: 0, approved: 0, rejected: 0 };

@@ -266,19 +266,37 @@ const SubmitForStudent = () => {
                         <p className="sfs-loading-text">Loading students...</p>
                     ) : (
                         <>
-                            <select
-                                name="studentId"
-                                value={formData.studentId}
-                                onChange={handleChange}
-                                className={`sfs-student-select ${errors.studentId ? 'has-error' : ''}`}
-                            >
-                                <option value="">-- Select a Student --</option>
-                                {filteredStudents.map(s => (
-                                    <option key={s._id} value={s._id}>
-                                        {s.fullName} — {s.registrationNumber} ({s.branch} {s.semester})
-                                    </option>
-                                ))}
-                            </select>
+                            {/* Searchable student list */}
+                            <div className="sfs-student-list">
+                                {filteredStudents.length > 0 ? (
+                                    filteredStudents.slice(0, 50).map(s => (
+                                        <div
+                                            key={s._id}
+                                            className={`sfs-student-option ${formData.studentId === s._id ? 'selected' : ''}`}
+                                            onClick={() => {
+                                                setFormData(prev => ({ ...prev, studentId: s._id }));
+                                                if (errors.studentId) setErrors(prev => ({ ...prev, studentId: '' }));
+                                            }}
+                                        >
+                                            <div className="sfs-option-avatar">
+                                                {s.fullName?.charAt(0)}
+                                            </div>
+                                            <div className="sfs-option-info">
+                                                <strong>{s.fullName}</strong>
+                                                <span>{s.registrationNumber} • {s.branch} {s.semester}</span>
+                                            </div>
+                                            {formData.studentId === s._id && (
+                                                <CheckCircle size={18} className="sfs-option-check" />
+                                            )}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="sfs-no-results">No students found matching "{searchQuery}"</p>
+                                )}
+                                {filteredStudents.length > 50 && (
+                                    <p className="sfs-more-hint">Showing 50 of {filteredStudents.length} — refine your search</p>
+                                )}
+                            </div>
                             {errors.studentId && <span className="form-error">{errors.studentId}</span>}
 
                             {selectedStudent && (

@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import useClickSound from '../../hooks/useClickSound';
 import {
     LayoutDashboard,
     Upload,
@@ -20,6 +21,7 @@ import './Sidebar.css';
 const Sidebar = ({ isOpen, onClose }) => {
     const { user } = useAuth();
     const location = useLocation();
+    const { playClick, playHover } = useClickSound();
 
     const studentLinks = [
         { to: '/student', icon: LayoutDashboard, label: 'Dashboard', exact: true },
@@ -75,7 +77,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                             className={({ isActive }) =>
                                 `sidebar-link ${isActive ? 'active' : ''}`
                             }
-                            onClick={onClose}
+                            onClick={() => { playClick(); onClose(); }}
+                            onMouseEnter={playHover}
                         >
                             <link.icon size={20} />
                             <span>{link.label}</span>

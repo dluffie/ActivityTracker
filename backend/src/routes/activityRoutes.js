@@ -73,8 +73,22 @@ router.post("/ai-extract", protectRoute, async (req, res) => {
 
     } catch (error) {
         console.error("AI extraction error:", error);
+
+        // Return clean error message — don't leak raw error details to frontend
+        const msg = error.message || "";
+        if (msg.includes("rate-limited") || msg.includes("quota")) {
+            return res.status(503).json({
+                message: "AI service is temporarily busy. Please try again in a few minutes."
+            });
+        }
+        if (msg.includes("unavailable") || msg.includes("access denied")) {
+            return res.status(503).json({
+                message: "AI extraction service is currently unavailable. Please fill the form manually."
+            });
+        }
+
         return res.status(500).json({
-            message: "AI extraction failed: " + error.message
+            message: error.message || "AI extraction failed. Please try filling the form manually."
         });
     }
 });

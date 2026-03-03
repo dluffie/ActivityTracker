@@ -1,5 +1,5 @@
 import express from 'express';
-import { google } from 'googleapis';
+import Brevo from '@getbrevo/brevo';
 import User from "../models/User.js";
 import NewUser from "../models/NewUser.js";
 import Activity from "../models/Activity.js";
@@ -10,18 +10,9 @@ import { BRANCHES, SEMESTERS, SECTIONS } from "./authRoutes.js";
 
 const router = express.Router();
 
-// Initialize Gmail API with OAuth2
-const oauth2Client = new google.auth.OAuth2(
-    process.env.GMAIL_CLIENT_ID,
-    process.env.GMAIL_CLIENT_SECRET,
-    'https://developers.google.com/oauthplayground'
-);
-
-oauth2Client.setCredentials({
-    refresh_token: process.env.GMAIL_REFRESH_TOKEN
-});
-
-const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+// Initialize Brevo email API
+const brevoClient = new Brevo.TransactionalEmailsApi();
+brevoClient.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
 // POST /api/teacher/subscribe-classes - Subscribe to classes
 router.post("/subscribe-classes", protectRoute, isTeacher, async (req, res) => {
@@ -280,11 +271,11 @@ router.post("/send-reminder", protectRoute, isTeacherOrAdmin, async (req, res) =
             return res.status(400).json({ message: "No valid recipients found" });
         }
 
-        // Send emails using Gmail API
-        const emailPromises = users.map(async (user) => {
+        // Send emails using Brevo
+        const emailPromises = users.map(async (u) => {
             const htmlContent = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h2 style="color: #333;">Hello ${user.fullName},</h2>
+                    <h2 style="color: #333;">Hello ${u.fullName},</h2>
                     <div style="color: #555; line-height: 1.6;">
                         ${message}
                     </div>
@@ -295,28 +286,13 @@ router.post("/send-reminder", protectRoute, isTeacherOrAdmin, async (req, res) =
                 </div>
             `;
 
-            const emailContent = [
-                `To: ${user.email}`,
-                `From: Activity Tracker <${process.env.EMAIL_USER}>`,
-                `Subject: ${subject}`,
-                `MIME-Version: 1.0`,
-                `Content-Type: text/html; charset=utf-8`,
-                ``,
-                htmlContent
-            ].join('\n');
+            const sendSmtpEmail = new Brevo.SendSmtpEmail();
+            sendSmtpEmail.to = [{ email: u.email }];
+            sendSmtpEmail.sender = { name: "Activity Tracker", email: process.env.EMAIL_USER };
+            sendSmtpEmail.subject = subject;
+            sendSmtpEmail.htmlContent = htmlContent;
 
-            const encodedEmail = Buffer.from(emailContent)
-                .toString('base64')
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=+$/, '');
-
-            return gmail.users.messages.send({
-                userId: 'me',
-                requestBody: {
-                    raw: encodedEmail
-                }
-            });
+            return brevoClient.sendTransacEmail(sendSmtpEmail);
         });
 
         await Promise.all(emailPromises);

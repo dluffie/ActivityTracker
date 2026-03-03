@@ -48,7 +48,7 @@ const timeAgo = (date) => {
 
 const Navbar = ({ onMenuToggle, isSidebarOpen }) => {
     const { user, logout } = useAuth();
-    const { theme, toggleTheme } = useTheme();
+    const { theme, setTheme, toggleTheme, isCyberpunk } = useTheme();
     const navigate = useNavigate();
     const [showDropdown, setShowDropdown] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
@@ -134,19 +134,27 @@ const Navbar = ({ onMenuToggle, isSidebarOpen }) => {
                 </button>
                 <Link to={getDashboardLink()} className="navbar-brand">
                     <div className="navbar-logo">
-                        <span className="logo-icon">📊</span>
-                        <span className="logo-text">CAPMS</span>
+                        <img src="/vite.svg" alt="CAPMS" className="logo-icon" style={{ width: 55, height: 55, paddingLeft: 5 }} />
+
                     </div>
                 </Link>
             </div>
 
             <div className="navbar-right">
                 <button
-                    className="navbar-icon-btn"
-                    onClick={() => toggleTheme(user?.role)}
-                    title={`Switch theme (${theme})`}
+                    className={`navbar-icon-btn ${isCyberpunk ? 'navbar-icon-btn-disabled' : ''}`}
+                    onClick={() => {
+                        if (!isCyberpunk) {
+                            // Only toggle between light and dark — never into cyberpunk
+                            const next = theme === 'light' ? 'dark' : 'light';
+                            setTheme(next);
+                        }
+                    }}
+                    title={isCyberpunk ? 'Exit Cyberpunk from Dashboard first' : `Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                    disabled={isCyberpunk}
+                    style={isCyberpunk ? { opacity: 0.4, cursor: 'not-allowed' } : {}}
                 >
-                    {theme === 'light' ? <Moon size={20} /> : theme === 'dark' && user?.role === 'student' ? <Zap size={20} /> : <Sun size={20} />}
+                    {isCyberpunk ? <Zap size={20} /> : theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                 </button>
 
                 {/* Notification Bell */}

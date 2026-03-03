@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Activity Tracker",
+    "slug": "activity-tracker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "activitytracker",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#faf8ff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.activitytracker.mobile"
+    },
+    "android": {
+      "package": "com.activitytracker.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#7c3aed",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-image-picker",
+      "expo-document-picker"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "daef46b0-8784-46d9-8a1f-27a0e348100b"
+      }
+    }
+  }
+}

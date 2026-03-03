@@ -100,14 +100,14 @@ const LandingPage = () => {
                         <Link to="/signup" className="landing-btn landing-btn-hero-signup">
                             <UserPlus size={18} /> Create Account
                         </Link>
-                        <button
+                        <a
+                            href="https://github.com/dxzoro/ActivityTracker/releases/latest"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="landing-btn landing-btn-download"
-                            onClick={() =>
-                                alert('Mobile app coming soon! Stay tuned for the release.')
-                            }
                         >
                             <Download size={18} /> Download App
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -271,14 +271,14 @@ const LandingPage = () => {
                         <Link to="/signup" className="landing-btn landing-btn-hero-login">
                             <UserPlus size={18} /> Create Your Account
                         </Link>
-                        <button
+                        <a
+                            href="https://github.com/dxzoro/ActivityTracker/releases/latest"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="landing-btn landing-btn-download"
-                            onClick={() =>
-                                alert('Mobile app coming soon! Stay tuned for the release.')
-                            }
                         >
                             <Download size={18} /> Get the App
-                        </button>
+                        </a>
                     </div>
                 </div>
             </section>
