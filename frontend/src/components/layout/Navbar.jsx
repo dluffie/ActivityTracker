@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { notificationAPI } from '../../api';
+import logo from '../../assets/vite.svg';
 import {
     Menu,
     X,
@@ -134,7 +135,7 @@ const Navbar = ({ onMenuToggle, isSidebarOpen }) => {
                 </button>
                 <Link to={getDashboardLink()} className="navbar-brand">
                     <div className="navbar-logo">
-                        <img src="../../assets/vite.svg" alt="CAPMS" className="logo-icon" style={{ width: 55, height: 55, paddingLeft: 5 }} />
+                        <img src={logo} alt="CAPMS" className="logo-icon" style={{ width: 55, height: 55, paddingLeft: 5 }} />
 
                     </div>
                 </Link>
