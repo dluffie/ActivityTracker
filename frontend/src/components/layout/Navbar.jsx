@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { notificationAPI } from '../../api';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logo.webp';
 import {
     Menu,
     X,
