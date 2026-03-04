@@ -101,7 +101,7 @@ const LandingPage = () => {
                             <UserPlus size={18} /> Create Account
                         </Link>
                         <a
-                            href="https://github.com/dxzoro/ActivityTracker/releases/latest"
+                            href="https://github.com/dluffie/ActivityTracker/archive/refs/tags/CAPMS.zip"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="landing-btn landing-btn-download"
