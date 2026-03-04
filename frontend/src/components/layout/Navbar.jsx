@@ -134,7 +134,7 @@ const Navbar = ({ onMenuToggle, isSidebarOpen }) => {
                 </button>
                 <Link to={getDashboardLink()} className="navbar-brand">
                     <div className="navbar-logo">
-                        <img src="/vite.svg" alt="CAPMS" className="logo-icon" style={{ width: 55, height: 55, paddingLeft: 5 }} />
+                        <img src="../../assets/vite.svg" alt="CAPMS" className="logo-icon" style={{ width: 55, height: 55, paddingLeft: 5 }} />
 
                     </div>
                 </Link>
