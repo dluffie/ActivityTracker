@@ -501,3 +501,133 @@
         right: -40px;
     }
 }
+
+/* ==================== LOGO TEXT (Per-Theme) ==================== */
+.logo-text {
+    display: none;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+[data-theme="cyberpunk"] .logo-text {
+    display: inline-block;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    background: linear-gradient(135deg, #00f0ff 0%, #ff00ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.4));
+}
+
+[data-theme="cyberpunk"] .logo-icon {
+    display: none;
+}
+
+[data-theme="brutalist"] .logo-text {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0A0A0A;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 3px solid #FF6B00;
+    padding-bottom: 2px;
+}
+
+[data-theme="brutalist"] .logo-icon {
+    display: none;
+}
+
+/* ==================== SOUND TOGGLE BUTTON ==================== */
+[data-theme="cyberpunk"] .sound-toggle-btn {
+    color: #6a7a9a;
+    position: relative;
+}
+
+[data-theme="cyberpunk"] .sound-toggle-btn:hover {
+    background: rgba(0, 240, 255, 0.1);
+    color: #00f0ff;
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+}
+
+/* ==================== BRUTALIST NAVBAR ==================== */
+[data-theme="brutalist"] .navbar {
+    background: #F5F0E8;
+    border-bottom: 3px solid #0A0A0A;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+[data-theme="brutalist"] .navbar-icon-btn {
+    color: #0A0A0A;
+    border: 2px solid transparent;
+}
+
+[data-theme="brutalist"] .navbar-icon-btn:hover {
+    background: #0A0A0A;
+    color: #F5F0E8;
+    border-color: #0A0A0A;
+}
+
+[data-theme="brutalist"] .profile-avatar {
+    background: #0A0A0A;
+    border-radius: 0;
+}
+
+[data-theme="brutalist"] .profile-dropdown {
+    background: #F5F0E8;
+    border: 3px solid #0A0A0A;
+    border-radius: 0;
+    box-shadow: 6px 6px 0 #0A0A0A;
+}
+
+[data-theme="brutalist"] .dropdown-header {
+    background: #EDE8DC;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+[data-theme="brutalist"] .dropdown-divider {
+    background: #0A0A0A;
+    height: 2px;
+}
+
+[data-theme="brutalist"] .dropdown-item:hover {
+    background: #0A0A0A;
+    color: #F5F0E8;
+}
+
+[data-theme="brutalist"] .notification-badge {
+    background: #FF6B00;
+    border-radius: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+}
+
+[data-theme="brutalist"] .notif-dropdown {
+    background: #F5F0E8;
+    border: 3px solid #0A0A0A;
+    border-radius: 0;
+    box-shadow: 6px 6px 0 #0A0A0A;
+}
+
+[data-theme="brutalist"] .notif-header {
+    border-color: #0A0A0A;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+[data-theme="brutalist"] .notif-item {
+    border-color: #0A0A0A;
+}
+
+[data-theme="brutalist"] .notif-item:hover {
+    background: #EDE8DC;
+}
+
+[data-theme="brutalist"] .notif-dot {
+    background: #FF6B00;
+    border-radius: 0;
+}

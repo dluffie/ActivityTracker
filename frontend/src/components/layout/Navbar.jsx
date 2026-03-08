@@ -18,7 +18,9 @@ import {
     XCircle,
     AlertTriangle,
     FileText,
-    UserCheck
+    UserCheck,
+    Volume2,
+    VolumeX
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import './Navbar.css';
@@ -49,7 +51,7 @@ const timeAgo = (date) => {
 
 const Navbar = ({ onMenuToggle, isSidebarOpen }) => {
     const { user, logout } = useAuth();
-    const { theme, setTheme, toggleTheme, isCyberpunk } = useTheme();
+    const { theme, setTheme, toggleTheme, isCyberpunk, isBrutalist, soundEnabled, toggleSound } = useTheme();
     const navigate = useNavigate();
     const [showDropdown, setShowDropdown] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
@@ -136,7 +138,7 @@ const Navbar = ({ onMenuToggle, isSidebarOpen }) => {
                 <Link to={getDashboardLink()} className="navbar-brand">
                     <div className="navbar-logo">
                         <img src={logo} alt="CAPMS" className="logo-icon" style={{ width: 55, height: 55, paddingLeft: 5 }} />
-
+                        <span className="logo-text">CAPMS</span>
                     </div>
                 </Link>
             </div>
@@ -157,6 +159,17 @@ const Navbar = ({ onMenuToggle, isSidebarOpen }) => {
                 >
                     {isCyberpunk ? <Zap size={20} /> : theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                 </button>
+
+                {/* Sound toggle — visible in cyberpunk theme */}
+                {isCyberpunk && (
+                    <button
+                        className="navbar-icon-btn sound-toggle-btn"
+                        onClick={toggleSound}
+                        title={soundEnabled ? 'Mute sound effects' : 'Enable sound effects'}
+                    >
+                        {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                    </button>
+                )}
 
                 {/* Notification Bell */}
                 <div className="notif-container" ref={notifRef}>

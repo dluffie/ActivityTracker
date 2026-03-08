@@ -7,7 +7,7 @@ import { useTheme } from '../context/ThemeContext';
  * No external audio files needed.
  */
 const useClickSound = () => {
-    const { isCyberpunk } = useTheme();
+    const { isCyberpunk, soundEnabled } = useTheme();
     const audioCtxRef = useRef(null);
 
     const getAudioContext = useCallback(() => {
@@ -18,7 +18,7 @@ const useClickSound = () => {
     }, []);
 
     const playClick = useCallback(() => {
-        if (!isCyberpunk) return;
+        if (!isCyberpunk || !soundEnabled) return;
 
         try {
             const ctx = getAudioContext();
@@ -50,10 +50,10 @@ const useClickSound = () => {
         } catch (e) {
             // Silently fail if Web Audio isn't available
         }
-    }, [isCyberpunk, getAudioContext]);
+    }, [isCyberpunk, soundEnabled, getAudioContext]);
 
     const playSuccess = useCallback(() => {
-        if (!isCyberpunk) return;
+        if (!isCyberpunk || !soundEnabled) return;
 
         try {
             const ctx = getAudioContext();
@@ -73,10 +73,10 @@ const useClickSound = () => {
         } catch (e) {
             // Silently fail
         }
-    }, [isCyberpunk, getAudioContext]);
+    }, [isCyberpunk, soundEnabled, getAudioContext]);
 
     const playHover = useCallback(() => {
-        if (!isCyberpunk) return;
+        if (!isCyberpunk || !soundEnabled) return;
 
         try {
             const ctx = getAudioContext();
@@ -94,7 +94,7 @@ const useClickSound = () => {
         } catch (e) {
             // Silently fail
         }
-    }, [isCyberpunk, getAudioContext]);
+    }, [isCyberpunk, soundEnabled, getAudioContext]);
 
     return { playClick, playSuccess, playHover };
 };

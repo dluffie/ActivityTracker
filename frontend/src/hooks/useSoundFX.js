@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
 const useSoundFX = () => {
-    const { theme } = useTheme();
+    const { theme, soundEnabled } = useTheme();
     const audioCtxRef = useRef(null);
 
     const getAudioCtx = useCallback(() => {
@@ -16,7 +16,7 @@ const useSoundFX = () => {
     }, []);
 
     const playTone = useCallback((freq, duration, type = 'square', volume = 0.15) => {
-        if (theme !== 'cyberpunk') return;
+        if (theme !== 'cyberpunk' || !soundEnabled) return;
         try {
             const ctx = getAudioCtx();
             const osc = ctx.createOscillator();

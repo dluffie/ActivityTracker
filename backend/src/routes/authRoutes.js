@@ -409,7 +409,8 @@ router.post("/login", async (req, res) => {
                 profileImage: user.profileImage,
                 totalPoints: user.totalPoints,
                 isLateral: user.isLateral,
-                profileVerified: user.profileVerified || false
+                profileVerified: user.profileVerified || false,
+                themePreference: user.themePreference || 'light'
             }
         });
 

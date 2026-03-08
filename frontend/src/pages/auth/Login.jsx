@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Input } from '../../components/ui';
-import { Mail, Lock, Hash, BarChart3 } from 'lucide-react';
+import { Mail, Lock, Hash, BarChart3, Home } from 'lucide-react';
 import toast from 'react-hot-toast';
 import loginImage from '../../assets/Healthy habit-amico.png';
 import './Auth.css';
@@ -88,6 +88,9 @@ const Login = () => {
 
     return (
         <div className="auth-page">
+            <Link to="/" className="auth-home-btn" title="Back to Home">
+                <Home size={22} />
+            </Link>
             <div className="auth-container">
                 <div className="auth-header">
                     <div className="auth-logo"><BarChart3 size={40} /></div>

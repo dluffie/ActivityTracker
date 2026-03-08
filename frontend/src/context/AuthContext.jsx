@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const { loadUserTheme } = useTheme();
+    const { loadUserTheme, playThemeTransition } = useTheme();
 
     // Check auth on mount
     useEffect(() => {
@@ -54,10 +54,8 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setIsAuthenticated(true);
 
-        // Apply user's saved theme
-        if (userData.themePreference) {
-            loadUserTheme(userData.themePreference);
-        }
+        // Fire-and-forget: transition handles cycling + final theme lock internally
+        playThemeTransition(userData.themePreference || 'light');
 
         return userData;
     };
@@ -77,10 +75,8 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setIsAuthenticated(true);
 
-        // Apply user's saved theme
-        if (userData.themePreference) {
-            loadUserTheme(userData.themePreference);
-        }
+        // Fire-and-forget: transition handles cycling + final theme lock internally
+        playThemeTransition(userData.themePreference || 'light');
 
         return userData;
     };
