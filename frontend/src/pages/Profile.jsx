@@ -208,7 +208,7 @@ const Profile = () => {
                         </form>
                     ) : (
                         <div className="profile-details">
-                            <div className="detail-row">
+                            <div className="detail-row full-width">
                                 <Mail size={18} />
                                 <div>
                                     <span className="detail-label">Email</span>
@@ -254,10 +254,12 @@ const Profile = () => {
                                         </div>
                                     </div>
 
-                                    <div className="detail-row highlight">
+                                    <div className={`detail-row highlight ${(profile.totalPoints || 0) >= (profile?.isLateral ? 40 : 60) ? 'achieved' : ''}`}>
                                         <Award size={18} />
                                         <div>
-                                            <span className="detail-label">Total Activity Points</span>
+                                            <span className="detail-label">
+                                                {(profile.totalPoints || 0) >= (profile?.isLateral ? 40 : 60) ? '✅ Goal Achieved!' : 'Total Activity Points'}
+                                            </span>
                                             <span className="detail-value points">{profile.totalPoints || 0} / {profile?.isLateral ? 40 : 60}</span>
                                         </div>
                                     </div>

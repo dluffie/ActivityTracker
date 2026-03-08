@@ -112,6 +112,23 @@ router.put("/profile", protectRoute, async (req, res) => {
     }
 });
 
+// PUT /api/user/theme - Save theme preference
+router.put("/theme", protectRoute, async (req, res) => {
+    try {
+        const { theme } = req.body;
+        const validThemes = ['light', 'dark', 'cyberpunk', 'brutalist'];
+        if (!theme || !validThemes.includes(theme)) {
+            return res.status(400).json({ message: "Invalid theme" });
+        }
+
+        await User.findByIdAndUpdate(req.user._id, { $set: { themePreference: theme } });
+        return res.status(200).json({ message: "Theme saved", theme });
+    } catch (error) {
+        console.error("Error saving theme:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
+
 // GET /api/user/:id - Get user by ID (for teachers viewing students)
 router.get("/:id", protectRoute, async (req, res) => {
     try {

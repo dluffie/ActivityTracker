@@ -21,8 +21,16 @@
 }
 
 .auth-logo {
-    font-size: 3rem;
-    margin-bottom: var(--space-4);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+    color: white;
+    margin: 0 auto var(--space-4);
+    box-shadow: 0 8px 24px rgba(30, 64, 175, 0.3);
 }
 
 .auth-header h1 {
@@ -480,4 +488,135 @@
     font-size: 0.8rem;
     color: #64748b;
     margin-top: 0.15rem;
+}
+
+/* ── Forgot Password ── */
+.auth-decoration-reset {
+    background: linear-gradient(135deg, #dc2626 0%, #f97316 50%, #ea580c 100%);
+}
+
+.auth-logo-reset {
+    background: linear-gradient(135deg, #ef4444, #f97316) !important;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3) !important;
+}
+
+.auth-logo-reset-success {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3) !important;
+}
+
+.forgot-title {
+    background: linear-gradient(135deg, #ef4444, #f97316) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+.otp-icon-reset {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
+}
+
+.forgot-deco-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto var(--space-6);
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    color: white;
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Success State */
+.forgot-success {
+    text-align: center;
+    padding: var(--space-6) 0;
+}
+
+.forgot-success-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    margin-bottom: var(--space-4);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.15));
+    border-radius: 50%;
+    color: #22c55e;
+    animation: successPop 0.5s ease;
+}
+
+@keyframes successPop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.15);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.forgot-success h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: var(--space-2);
+}
+
+.forgot-success p {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+}
+
+/* Password Requirements */
+.password-requirements {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.password-requirements .req {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    transition: color 0.2s ease;
+}
+
+.password-requirements .req.met {
+    color: #22c55e;
+}
+
+.forgot-password {
+    text-align: right;
+    margin-top: -0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.forgot-password a {
+    font-size: 0.85rem;
+    color: var(--primary-500, #2563eb);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.forgot-password a:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
 }

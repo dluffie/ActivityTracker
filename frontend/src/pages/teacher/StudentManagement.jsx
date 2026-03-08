@@ -3,6 +3,7 @@ import { teacherAPI } from '../../api';
 import { Card, Loading, Table, Pagination, Button } from '../../components/ui';
 import { Users, Search, Download, Eye, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
+import StudentDetailModal from './StudentDetailModal';
 import './StudentManagement.css';
 
 const StudentManagement = () => {
@@ -10,6 +11,7 @@ const StudentManagement = () => {
     const [students, setStudents] = useState([]);
     const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, pages: 1 });
     const [search, setSearch] = useState('');
+    const [selectedStudentId, setSelectedStudentId] = useState(null);
 
     useEffect(() => {
         fetchStudents();
@@ -78,7 +80,10 @@ const StudentManagement = () => {
             key: 'actions',
             title: 'Actions',
             render: (_, row) => (
-                <button className="btn btn-ghost btn-sm">
+                <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setSelectedStudentId(row._id)}
+                >
                     <Eye size={16} /> View
                 </button>
             ),
@@ -130,6 +135,13 @@ const StudentManagement = () => {
                     onPageChange={(page) => setPagination(prev => ({ ...prev, page }))}
                 />
             </Card>
+
+            {selectedStudentId && (
+                <StudentDetailModal
+                    studentId={selectedStudentId}
+                    onClose={() => setSelectedStudentId(null)}
+                />
+            )}
         </div>
     );
 };

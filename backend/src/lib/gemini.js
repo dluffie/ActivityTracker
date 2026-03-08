@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Models to try in order: best first, then fallback
-const MODELS = ["gemini-2.5-flash", "gemini-3-preview"];
+const MODELS = ["gemini-3-preview", "gemini-2.5-flash"];
 
 const MASTER_PROMPT = `You are an AI system that verifies student activity documents based on the official activity points table of GPC Kothamangalam.
 

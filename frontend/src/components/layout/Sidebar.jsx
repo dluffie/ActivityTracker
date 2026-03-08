@@ -90,20 +90,24 @@ const Sidebar = ({ isOpen, onClose }) => {
                     <div className="sidebar-stats">
                         {user?.role === 'student' && (
                             <>
-                                <div className="stat-item">
+                                <div className={`stat-item ${(user?.totalPoints || 0) >= (user?.isLateral ? 40 : 60) ? 'stat-achieved' : ''}`}>
                                     <span className="stat-value">{user?.totalPoints || 0}</span>
-                                    <span className="stat-label">Total Points</span>
+                                    <span className="stat-label">
+                                        {(user?.totalPoints || 0) >= (user?.isLateral ? 40 : 60) ? '✅ Goal Achieved!' : 'Total Points'}
+                                    </span>
                                 </div>
                                 <div className="stat-progress">
                                     <div className="progress">
                                         <div
-                                            className="progress-bar"
+                                            className={`progress-bar ${(user?.totalPoints || 0) >= (user?.isLateral ? 40 : 60) ? 'progress-achieved' : ''}`}
                                             style={{ width: `${Math.min((user?.totalPoints || 0) / (user?.isLateral ? 40 : 60) * 100, 100)}%` }}
                                         />
                                     </div>
                                     <span className="stat-label">
-                                        {user?.totalPoints || 0}/{user?.isLateral ? 40 : 60} points required
-                                        {user?.isLateral && ' (Lateral)'}
+                                        {(user?.totalPoints || 0) >= (user?.isLateral ? 40 : 60)
+                                            ? `${user?.totalPoints || 0}/${user?.isLateral ? 40 : 60} — Complete! 🎉`
+                                            : `${user?.totalPoints || 0}/${user?.isLateral ? 40 : 60} points required${user?.isLateral ? ' (Lateral)' : ''}`
+                                        }
                                     </span>
                                 </div>
                             </>

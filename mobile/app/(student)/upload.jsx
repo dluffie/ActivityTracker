@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
     View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity,
     Platform, KeyboardAvoidingView, ActivityIndicator, Image,
@@ -6,14 +6,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../src/context/AuthContext';
+import { useTheme } from '../../src/context/ThemeContext';
 import { activityAPI } from '../../src/api';
-import { COLORS, SPACING, RADIUS, SHADOWS, ACTIVITY_TYPES, ACTIVITY_LEVELS } from '../../src/constants/theme';
+import { SPACING, RADIUS, SHADOWS, ACTIVITY_TYPES, ACTIVITY_LEVELS } from '../../src/constants/theme';
 
-// Map AI response categories to backend enum values
 const categoryMap = {
     'sports': 'sports', 'arts': 'arts', 'technical': 'technical',
     'social': 'social_service', 'social service': 'social_service',
@@ -29,7 +27,8 @@ const levelMap = {
 
 export default function UploadScreen() {
     const { user } = useAuth();
-    const [uploadMode, setUploadMode] = useState('manual'); // 'manual' or 'ai'
+    const { colors } = useTheme();
+    const [uploadMode, setUploadMode] = useState('manual');
     const [aiLoading, setAiLoading] = useState(false);
     const [aiExtracted, setAiExtracted] = useState(false);
     const [aiResult, setAiResult] = useState(null);
@@ -41,6 +40,7 @@ export default function UploadScreen() {
         startDate: '', endDate: '', description: '',
     });
 
+    const styles = useMemo(() => getStyles(colors), [colors]);
     const update = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
 
     const pickDocument = async () => {
@@ -109,6 +109,11 @@ export default function UploadScreen() {
             Toast.show({ type: 'error', text1: 'Please fill all required fields' });
             return;
         }
+        // Date validation
+        if (new Date(endDate) < new Date(startDate)) {
+            Toast.show({ type: 'error', text1: 'End date must be on or after start date' });
+            return;
+        }
         if (!docBase64) {
             Toast.show({ type: 'error', text1: 'Please upload a certificate' });
             return;
@@ -151,6 +156,28 @@ export default function UploadScreen() {
         </View>
     );
 
+    // Profile verification gate
+    if (!user?.profileVerified) {
+        return (
+            <SafeAreaView style={styles.container} edges={['top']}>
+                <View style={styles.blockedContainer}>
+                    <View style={styles.blockedIcon}>
+                        <Ionicons name="shield-outline" size={64} color={colors.warning} />
+                    </View>
+                    <Text style={styles.blockedTitle}>Profile Not Verified</Text>
+                    <Text style={styles.blockedDesc}>
+                        Your profile needs to be verified by a teacher before you can upload activities.
+                        Please wait for verification or contact your class teacher.
+                    </Text>
+                    <View style={styles.blockedBadge}>
+                        <Ionicons name="time-outline" size={16} color={colors.warning} />
+                        <Text style={styles.blockedBadgeText}>Verification Pending</Text>
+                    </View>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
     const showFormFields = uploadMode === 'manual' || aiExtracted;
 
     return (
@@ -166,14 +193,14 @@ export default function UploadScreen() {
                             style={[styles.modeBtn, uploadMode === 'manual' && styles.modeBtnActive]}
                             onPress={() => { setUploadMode('manual'); setAiExtracted(false); setAiResult(null); }}
                         >
-                            <Ionicons name="create-outline" size={18} color={uploadMode === 'manual' ? COLORS.white : COLORS.primary} />
+                            <Ionicons name="create-outline" size={18} color={uploadMode === 'manual' ? colors.textInverse : colors.primary} />
                             <Text style={[styles.modeBtnText, uploadMode === 'manual' && styles.modeBtnTextActive]}>Manual Entry</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.modeBtn, uploadMode === 'ai' && styles.modeBtnActive]}
                             onPress={() => { setUploadMode('ai'); setAiExtracted(false); setAiResult(null); }}
                         >
-                            <Ionicons name="sparkles" size={18} color={uploadMode === 'ai' ? COLORS.white : COLORS.primary} />
+                            <Ionicons name="sparkles" size={18} color={uploadMode === 'ai' ? colors.textInverse : colors.primary} />
                             <Text style={[styles.modeBtnText, uploadMode === 'ai' && styles.modeBtnTextActive]}>AI Extraction</Text>
                         </TouchableOpacity>
                     </View>
@@ -188,7 +215,7 @@ export default function UploadScreen() {
                                 <Image source={{ uri: filePreview }} style={styles.previewImg} />
                             ) : (
                                 <View style={styles.uploadPlaceholder}>
-                                    <Ionicons name="cloud-upload-outline" size={40} color={COLORS.primary} />
+                                    <Ionicons name="cloud-upload-outline" size={40} color={colors.primary} />
                                     <Text style={styles.uploadText}>Tap to select certificate image</Text>
                                     <Text style={styles.uploadHint}>JPG, PNG supported</Text>
                                 </View>
@@ -196,7 +223,7 @@ export default function UploadScreen() {
                         </TouchableOpacity>
                         {filePreview && (
                             <TouchableOpacity style={styles.removeBtn} onPress={() => { setFilePreview(null); setDocBase64(null); setAiExtracted(false); }}>
-                                <Ionicons name="trash-outline" size={16} color={COLORS.error} />
+                                <Ionicons name="trash-outline" size={16} color={colors.error} />
                                 <Text style={styles.removeBtnText}>Remove</Text>
                             </TouchableOpacity>
                         )}
@@ -211,12 +238,12 @@ export default function UploadScreen() {
                         >
                             {aiLoading ? (
                                 <>
-                                    <ActivityIndicator size="small" color={COLORS.white} />
+                                    <ActivityIndicator size="small" color={colors.textInverse} />
                                     <Text style={styles.aiBtnText}>Extracting with AI...</Text>
                                 </>
                             ) : (
                                 <>
-                                    <Ionicons name="sparkles" size={20} color={COLORS.white} />
+                                    <Ionicons name="sparkles" size={20} color={colors.textInverse} />
                                     <Text style={styles.aiBtnText}>Extract with AI ✨</Text>
                                 </>
                             )}
@@ -226,10 +253,13 @@ export default function UploadScreen() {
                     {/* AI Result Banner */}
                     {aiExtracted && aiResult && (
                         <View style={styles.aiBanner}>
-                            <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
+                            <Ionicons name="checkmark-circle" size={20} color={colors.success} />
                             <View style={{ flex: 1 }}>
                                 <Text style={styles.aiBannerTitle}>AI Extraction Complete!</Text>
                                 <Text style={styles.aiBannerSub}>Review and edit the fields below before submitting</Text>
+                                {aiResult.confidence && (
+                                    <Text style={styles.aiConfidence}>Confidence: {Math.round(aiResult.confidence * 100)}%</Text>
+                                )}
                             </View>
                         </View>
                     )}
@@ -237,7 +267,7 @@ export default function UploadScreen() {
                     {/* AI mode instruction when no file */}
                     {uploadMode === 'ai' && !filePreview && (
                         <View style={styles.aiInstruction}>
-                            <Ionicons name="information-circle-outline" size={22} color={COLORS.primary} />
+                            <Ionicons name="information-circle-outline" size={22} color={colors.primary} />
                             <Text style={styles.aiInstructionText}>Upload a certificate and click "Extract with AI" to auto-fill the form</Text>
                         </View>
                     )}
@@ -254,7 +284,7 @@ export default function UploadScreen() {
                                     style={styles.input} value={formData.eventName}
                                     onChangeText={v => update('eventName', v)}
                                     placeholder="e.g. Science Fair 2025"
-                                    placeholderTextColor={COLORS.textTertiary}
+                                    placeholderTextColor={colors.textTertiary}
                                 />
                             </View>
 
@@ -265,7 +295,7 @@ export default function UploadScreen() {
                                         style={styles.input} value={formData.startDate}
                                         onChangeText={v => update('startDate', v)}
                                         placeholder="YYYY-MM-DD"
-                                        placeholderTextColor={COLORS.textTertiary}
+                                        placeholderTextColor={colors.textTertiary}
                                     />
                                 </View>
                                 <View style={[styles.field, { flex: 1 }]}>
@@ -274,7 +304,7 @@ export default function UploadScreen() {
                                         style={styles.input} value={formData.endDate}
                                         onChangeText={v => update('endDate', v)}
                                         placeholder="YYYY-MM-DD"
-                                        placeholderTextColor={COLORS.textTertiary}
+                                        placeholderTextColor={colors.textTertiary}
                                     />
                                 </View>
                             </View>
@@ -285,7 +315,7 @@ export default function UploadScreen() {
                                     style={[styles.input, styles.textArea]} value={formData.description}
                                     onChangeText={v => update('description', v)}
                                     placeholder="Brief description of the activity"
-                                    placeholderTextColor={COLORS.textTertiary}
+                                    placeholderTextColor={colors.textTertiary}
                                     multiline numberOfLines={3} textAlignVertical="top"
                                 />
                             </View>
@@ -295,10 +325,10 @@ export default function UploadScreen() {
                                 onPress={handleSubmit} disabled={submitting}
                             >
                                 {submitting ? (
-                                    <ActivityIndicator color={COLORS.white} />
+                                    <ActivityIndicator color={colors.textInverse} />
                                 ) : (
                                     <>
-                                        <Ionicons name="checkmark-circle" size={20} color={COLORS.white} />
+                                        <Ionicons name="checkmark-circle" size={20} color={colors.textInverse} />
                                         <Text style={styles.submitText}>Submit Activity</Text>
                                     </>
                                 )}
@@ -313,32 +343,50 @@ export default function UploadScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background },
+const getStyles = (colors) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
     scroll: { padding: SPACING.xl },
-    title: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary },
-    subtitle: { fontSize: 14, color: COLORS.textSecondary, marginBottom: SPACING.lg },
+    title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
+    subtitle: { fontSize: 14, color: colors.textSecondary, marginBottom: SPACING.lg },
+
+    // Blocked state
+    blockedContainer: {
+        flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.xl * 2,
+    },
+    blockedIcon: {
+        width: 120, height: 120, borderRadius: 60,
+        backgroundColor: colors.warningBg, alignItems: 'center', justifyContent: 'center',
+        marginBottom: SPACING.xl,
+    },
+    blockedTitle: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, marginBottom: SPACING.md, textAlign: 'center' },
+    blockedDesc: { fontSize: 15, color: colors.textSecondary, textAlign: 'center', lineHeight: 22, marginBottom: SPACING.xl },
+    blockedBadge: {
+        flexDirection: 'row', alignItems: 'center', gap: SPACING.xs,
+        backgroundColor: colors.warningBg, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm,
+        borderRadius: RADIUS.full, borderWidth: 1, borderColor: colors.warning + '40',
+    },
+    blockedBadgeText: { fontSize: 14, fontWeight: '600', color: colors.warning },
 
     // Mode toggle
     modeToggle: {
-        flexDirection: 'row', backgroundColor: COLORS.white, borderRadius: RADIUS.lg,
+        flexDirection: 'row', backgroundColor: colors.card, borderRadius: RADIUS.lg,
         padding: 4, marginBottom: SPACING.lg, ...SHADOWS.sm,
     },
     modeBtn: {
         flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
         gap: SPACING.xs, paddingVertical: SPACING.md, borderRadius: RADIUS.md,
     },
-    modeBtnActive: { backgroundColor: COLORS.primary },
-    modeBtnText: { fontSize: 14, fontWeight: '600', color: COLORS.primary },
-    modeBtnTextActive: { color: COLORS.white },
+    modeBtnActive: { backgroundColor: colors.primary },
+    modeBtnText: { fontSize: 14, fontWeight: '600', color: colors.primary },
+    modeBtnTextActive: { color: colors.textInverse },
 
     // Fields
     field: { marginBottom: SPACING.md },
-    label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginBottom: SPACING.xs },
+    label: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginBottom: SPACING.xs },
     input: {
-        backgroundColor: COLORS.white, borderRadius: RADIUS.md, paddingHorizontal: SPACING.lg,
-        paddingVertical: SPACING.md, fontSize: 15, color: COLORS.textPrimary,
-        borderWidth: 1, borderColor: COLORS.border,
+        backgroundColor: colors.card, borderRadius: RADIUS.md, paddingHorizontal: SPACING.lg,
+        paddingVertical: SPACING.md, fontSize: 15, color: colors.textPrimary,
+        borderWidth: 1, borderColor: colors.border,
     },
     textArea: { minHeight: 80 },
     dateRow: { flexDirection: 'row', gap: SPACING.sm },
@@ -347,59 +395,60 @@ const styles = StyleSheet.create({
     chipRow: { flexDirection: 'row', gap: SPACING.xs },
     chip: {
         paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-        backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border,
+        backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
     },
-    chipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-    chipText: { fontSize: 13, color: COLORS.textSecondary, fontWeight: '500' },
-    chipTextActive: { color: COLORS.white },
+    chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    chipText: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
+    chipTextActive: { color: colors.textInverse },
 
     // Upload
     uploadBox: {
-        backgroundColor: COLORS.white, borderRadius: RADIUS.lg, borderWidth: 2,
-        borderColor: COLORS.border, borderStyle: 'dashed', overflow: 'hidden',
+        backgroundColor: colors.card, borderRadius: RADIUS.lg, borderWidth: 2,
+        borderColor: colors.border, borderStyle: 'dashed', overflow: 'hidden',
         minHeight: 160, alignItems: 'center', justifyContent: 'center',
     },
     uploadPlaceholder: { alignItems: 'center', padding: SPACING.xl },
-    uploadText: { fontSize: 14, color: COLORS.textSecondary, marginTop: SPACING.sm, fontWeight: '500' },
-    uploadHint: { fontSize: 12, color: COLORS.textTertiary, marginTop: 4 },
+    uploadText: { fontSize: 14, color: colors.textSecondary, marginTop: SPACING.sm, fontWeight: '500' },
+    uploadHint: { fontSize: 12, color: colors.textTertiary, marginTop: 4 },
     previewImg: { width: '100%', height: 200, resizeMode: 'contain' },
     removeBtn: {
         flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-end',
         marginTop: SPACING.xs, paddingVertical: 4,
     },
-    removeBtnText: { fontSize: 13, color: COLORS.error, fontWeight: '500' },
+    removeBtnText: { fontSize: 13, color: colors.error, fontWeight: '500' },
 
     // AI Button
     aiBtn: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm,
-        backgroundColor: '#8b5cf6', paddingVertical: SPACING.lg, borderRadius: RADIUS.md,
+        backgroundColor: colors.info || colors.primary, paddingVertical: SPACING.lg, borderRadius: RADIUS.md,
         marginBottom: SPACING.lg, ...SHADOWS.md,
     },
     aiBtnLoading: { opacity: 0.8 },
-    aiBtnText: { fontSize: 16, fontWeight: '600', color: COLORS.white },
+    aiBtnText: { fontSize: 16, fontWeight: '600', color: colors.textInverse },
 
     // AI Banner
     aiBanner: {
         flexDirection: 'row', alignItems: 'center', gap: SPACING.sm,
-        backgroundColor: COLORS.successBg, padding: SPACING.md, borderRadius: RADIUS.md,
-        marginBottom: SPACING.lg, borderWidth: 1, borderColor: '#a7f3d0',
+        backgroundColor: colors.successBg, padding: SPACING.md, borderRadius: RADIUS.md,
+        marginBottom: SPACING.lg, borderWidth: 1, borderColor: colors.success + '40',
     },
-    aiBannerTitle: { fontSize: 14, fontWeight: '600', color: '#065f46' },
-    aiBannerSub: { fontSize: 12, color: '#047857', marginTop: 2 },
+    aiBannerTitle: { fontSize: 14, fontWeight: '600', color: colors.success },
+    aiBannerSub: { fontSize: 12, color: colors.success, marginTop: 2, opacity: 0.8 },
+    aiConfidence: { fontSize: 11, fontWeight: '700', color: colors.success, marginTop: 4 },
 
     // AI Instruction
     aiInstruction: {
         flexDirection: 'row', alignItems: 'center', gap: SPACING.sm,
-        backgroundColor: COLORS.primaryBg, padding: SPACING.md, borderRadius: RADIUS.md,
-        marginBottom: SPACING.lg, borderWidth: 1, borderColor: COLORS.primaryBorder,
+        backgroundColor: colors.primaryBg, padding: SPACING.md, borderRadius: RADIUS.md,
+        marginBottom: SPACING.lg, borderWidth: 1, borderColor: colors.primaryBorder,
     },
-    aiInstructionText: { fontSize: 13, color: COLORS.primaryDark, flex: 1 },
+    aiInstructionText: { fontSize: 13, color: colors.primary, flex: 1 },
 
     // Submit
     submitBtn: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm,
-        backgroundColor: COLORS.primary, paddingVertical: SPACING.lg, borderRadius: RADIUS.md,
+        backgroundColor: colors.primary, paddingVertical: SPACING.lg, borderRadius: RADIUS.md,
         marginTop: SPACING.md,
     },
-    submitText: { fontSize: 16, fontWeight: '600', color: COLORS.white },
+    submitText: { fontSize: 16, fontWeight: '600', color: colors.textInverse },
 });

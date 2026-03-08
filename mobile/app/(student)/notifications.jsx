@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
     RefreshControl, ActivityIndicator,
@@ -6,8 +6,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { useTheme } from '../../src/context/ThemeContext';
 import { notificationAPI } from '../../src/api';
-import { COLORS, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
+import { SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 const NOTIF_CONFIG = {
     approval: { icon: 'checkmark-circle', color: '#22c55e' },
@@ -34,9 +35,12 @@ const timeAgo = (date) => {
 };
 
 export default function NotificationsScreen() {
+    const { colors } = useTheme();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [notifications, setNotifications] = useState([]);
+
+    const styles = useMemo(() => getStyles(colors), [colors]);
 
     useEffect(() => { fetchNotifications(); }, []);
 
@@ -102,17 +106,17 @@ export default function NotificationsScreen() {
             </View>
 
             {loading ? (
-                <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
+                <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View>
             ) : (
                 <FlatList
                     data={notifications}
                     keyExtractor={item => item._id}
                     renderItem={renderItem}
                     contentContainerStyle={{ padding: SPACING.xl, paddingTop: SPACING.sm }}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchNotifications(); }} colors={[COLORS.primary]} />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchNotifications(); }} colors={[colors.primary]} />}
                     ListEmptyComponent={
                         <View style={styles.empty}>
-                            <Ionicons name="notifications-off-outline" size={56} color={COLORS.textTertiary} />
+                            <Ionicons name="notifications-off-outline" size={56} color={colors.textTertiary} />
                             <Text style={styles.emptyText}>No notifications yet</Text>
                         </View>
                     }
@@ -122,37 +126,37 @@ export default function NotificationsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background },
+const getStyles = (colors) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
     header: {
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
         paddingHorizontal: SPACING.xl, paddingTop: SPACING.lg, paddingBottom: SPACING.sm,
     },
-    title: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary },
+    title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
     markAllBtn: {
         paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs,
-        backgroundColor: COLORS.primaryBg, borderRadius: RADIUS.full,
+        backgroundColor: colors.primaryBg, borderRadius: RADIUS.full,
     },
-    markAllText: { fontSize: 12, fontWeight: '600', color: COLORS.primary },
+    markAllText: { fontSize: 12, fontWeight: '600', color: colors.primary },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     card: {
         flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.md,
-        backgroundColor: COLORS.white, borderRadius: RADIUS.lg, padding: SPACING.lg,
+        backgroundColor: colors.card, borderRadius: RADIUS.lg, padding: SPACING.lg,
         marginBottom: SPACING.sm, ...SHADOWS.sm,
     },
-    cardUnread: { backgroundColor: COLORS.primaryBg, borderWidth: 1, borderColor: COLORS.primaryBorder },
+    cardUnread: { backgroundColor: colors.primaryBg, borderWidth: 1, borderColor: colors.primaryBorder },
     iconWrap: {
         width: 42, height: 42, borderRadius: 21,
         alignItems: 'center', justifyContent: 'center',
     },
     cardBody: { flex: 1 },
-    cardTitle: { fontSize: 14, fontWeight: '600', color: COLORS.textPrimary },
-    cardMessage: { fontSize: 13, color: COLORS.textSecondary, marginTop: 2, lineHeight: 18 },
-    cardTime: { fontSize: 11, color: COLORS.textTertiary, marginTop: 4 },
+    cardTitle: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+    cardMessage: { fontSize: 13, color: colors.textSecondary, marginTop: 2, lineHeight: 18 },
+    cardTime: { fontSize: 11, color: colors.textTertiary, marginTop: 4 },
     unreadDot: {
         width: 8, height: 8, borderRadius: 4,
-        backgroundColor: COLORS.primary, marginTop: 6,
+        backgroundColor: colors.primary, marginTop: 6,
     },
     empty: { alignItems: 'center', paddingVertical: 80 },
-    emptyText: { fontSize: 15, color: COLORS.textTertiary, marginTop: SPACING.md },
+    emptyText: { fontSize: 15, color: colors.textTertiary, marginTop: SPACING.md },
 });

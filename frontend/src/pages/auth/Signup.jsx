@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../api';
 import { Button, Input, Select } from '../../components/ui';
-import { Mail, Lock, User, Calendar, Hash, BookOpen, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, User, Calendar, Hash, BookOpen, ShieldCheck, ClipboardList } from 'lucide-react';
 import toast from 'react-hot-toast';
 import signupImage from '../../assets/i.png';
 import './Auth.css';
@@ -157,7 +157,7 @@ const Signup = () => {
         <div className="auth-page">
             <div className="auth-container">
                 <div className="auth-header">
-                    <div className="auth-logo">📊</div>
+                    <div className="auth-logo"><ClipboardList size={40} /></div>
                     <h1>Create Account</h1>
                     <p>Join the Activity Point Management System</p>
                 </div>

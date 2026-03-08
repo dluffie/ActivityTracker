@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Input } from '../../components/ui';
-import { Mail, Lock, Hash } from 'lucide-react';
+import { Mail, Lock, Hash, BarChart3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import loginImage from '../../assets/Healthy habit-amico.png';
 import './Auth.css';
@@ -90,7 +90,7 @@ const Login = () => {
         <div className="auth-page">
             <div className="auth-container">
                 <div className="auth-header">
-                    <div className="auth-logo">📊</div>
+                    <div className="auth-logo"><BarChart3 size={40} /></div>
                     <h1>Welcome Back</h1>
                     <p>Sign in to continue to your dashboard</p>
                 </div>

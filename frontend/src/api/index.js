@@ -45,6 +45,9 @@ export const authAPI = {
     login: (data) => api.post('/auth/login', data),
     getMe: () => api.get('/auth/me'),
     getOptions: () => api.get('/auth/options'),
+    forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+    verifyResetOtp: (data) => api.post('/auth/verify-reset-otp', data),
+    resetPassword: (data) => api.post('/auth/reset-password', data),
 };
 
 // Activity API
@@ -66,6 +69,7 @@ export const userAPI = {
     getProfile: () => api.get('/user/profile'),
     updateProfile: (data) => api.put('/user/profile', data),
     getUser: (id) => api.get(`/user/${id}`),
+    saveTheme: (theme) => api.put('/user/theme', { theme }),
 };
 
 // Teacher API
@@ -80,6 +84,7 @@ export const teacherAPI = {
     getUnverifiedStudents: (params) => api.get('/teacher/unverified-students', { params }),
     verifyStudent: (studentId) => api.post(`/teacher/verify-student/${studentId}`),
     rejectVerification: (studentId, reason) => api.post(`/teacher/reject-verification/${studentId}`, { reason }),
+    getStudentDetail: (studentId) => api.get(`/teacher/student-detail/${studentId}`),
 };
 
 // Admin API

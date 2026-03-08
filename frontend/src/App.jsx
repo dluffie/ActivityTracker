@@ -6,7 +6,7 @@ import { Layout } from './components/layout';
 import { Loading } from './components/ui';
 
 // Auth Pages
-import { Login, Signup } from './pages/auth';
+import { Login, Signup, ForgotPassword } from './pages/auth';
 import LandingPage from './pages/LandingPage';
 
 // Student Pages
@@ -94,6 +94,9 @@ function AppRoutes() {
       } />
       <Route path="/signup" element={
         <PublicRoute><Signup /></PublicRoute>
+      } />
+      <Route path="/forgot-password" element={
+        <PublicRoute><ForgotPassword /></PublicRoute>
       } />
 
       {/* Student Routes */}

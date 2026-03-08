@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { router } from 'expo-router';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Animated, Easing, Image } from 'react-native';
 import { useAuth } from '../src/context/AuthContext';
-import { COLORS } from '../src/constants/theme';
+import { useTheme } from '../src/context/ThemeContext';
 
 export default function SplashIndex() {
     const { user, loading, isAuthenticated } = useAuth();
+    const { colors } = useTheme();
 
     // Animations
     const logoScale = useRef(new Animated.Value(0.3)).current;
@@ -17,21 +18,16 @@ export default function SplashIndex() {
     const glowOpacity = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        // Animate splash sequence
         Animated.sequence([
-            // 1. Logo pops in
             Animated.parallel([
                 Animated.spring(logoScale, { toValue: 1, tension: 60, friction: 7, useNativeDriver: true }),
                 Animated.timing(logoOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
             ]),
-            // 2. Glow pulse
             Animated.timing(glowOpacity, { toValue: 0.6, duration: 300, useNativeDriver: true }),
-            // 3. Title slides up
             Animated.parallel([
                 Animated.timing(titleOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
                 Animated.timing(titleTranslate, { toValue: 0, duration: 400, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
             ]),
-            // 4. Subtitle + loading dot
             Animated.parallel([
                 Animated.timing(subtitleOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
                 Animated.spring(dotScale, { toValue: 1, tension: 80, friction: 5, useNativeDriver: true }),
@@ -39,7 +35,6 @@ export default function SplashIndex() {
         ]).start();
     }, []);
 
-    // Pulse animation for the dot
     useEffect(() => {
         const pulse = Animated.loop(
             Animated.sequence([
@@ -51,7 +46,6 @@ export default function SplashIndex() {
         return () => { clearTimeout(timer); pulse.stop(); };
     }, []);
 
-    // Navigate after auth resolves
     useEffect(() => {
         if (!loading) {
             const timer = setTimeout(() => {
@@ -63,43 +57,35 @@ export default function SplashIndex() {
                 } else {
                     router.replace('/(auth)/login');
                 }
-            }, 1800); // Show splash for at least 1.8s
+            }, 1800);
             return () => clearTimeout(timer);
         }
     }, [loading, isAuthenticated, user]);
 
     return (
-        <View style={styles.container}>
-            {/* Background gradient circles */}
-            <View style={styles.bgCircle1} />
-            <View style={styles.bgCircle2} />
-            <View style={styles.bgCircle3} />
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <View style={[styles.bgCircle1, { backgroundColor: colors.primaryLight, opacity: 0.25 }]} />
+            <View style={[styles.bgCircle2, { backgroundColor: colors.primaryBorder, opacity: 0.2 }]} />
+            <View style={[styles.bgCircle3, { backgroundColor: colors.accent, opacity: 0.3 }]} />
 
-            {/* Glow behind logo */}
-            <Animated.View style={[styles.glow, { opacity: glowOpacity }]} />
+            <Animated.View style={[styles.glow, { opacity: glowOpacity, backgroundColor: colors.primary }]} />
 
-            {/* Logo */}
             <Animated.View style={[styles.logoContainer, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}>
-                <View style={styles.logoBox}>
-                    <Text style={styles.logoEmoji}>📊</Text>
+                <View style={[styles.logoBox, { backgroundColor: colors.card, shadowColor: colors.primary }]}>
+                    <Image source={require('../assets/logo.png')} style={styles.logoImage} />
                 </View>
             </Animated.View>
 
-            {/* Title */}
-            <Animated.Text style={[styles.title, { opacity: titleOpacity, transform: [{ translateY: titleTranslate }] }]}>
-                CAPMS
+            <Animated.Text style={[styles.title, { color: colors.primary, opacity: titleOpacity, transform: [{ translateY: titleTranslate }] }]}>
             </Animated.Text>
 
-            {/* Subtitle */}
-            <Animated.Text style={[styles.subtitle, { opacity: subtitleOpacity }]}>
+            <Animated.Text style={[styles.subtitle, { color: colors.textSecondary, opacity: subtitleOpacity }]}>
                 College Activity Point{'\n'}Management System
             </Animated.Text>
 
-            {/* Loading dot */}
-            <Animated.View style={[styles.loadingDot, { transform: [{ scale: dotScale }] }]} />
+            <Animated.View style={[styles.loadingDot, { backgroundColor: colors.primary, transform: [{ scale: dotScale }] }]} />
 
-            {/* Bottom text */}
-            <Animated.Text style={[styles.bottomText, { opacity: subtitleOpacity }]}>
+            <Animated.Text style={[styles.bottomText, { color: colors.textTertiary, opacity: subtitleOpacity }]}>
                 GPC Kothamangalam
             </Animated.Text>
         </View>
@@ -111,66 +97,58 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#faf8ff',
     },
-    // Decorative background circles
     bgCircle1: {
         position: 'absolute', top: -80, right: -60,
         width: 220, height: 220, borderRadius: 110,
-        backgroundColor: '#e9d5ff', opacity: 0.4,
     },
     bgCircle2: {
         position: 'absolute', bottom: -50, left: -40,
         width: 180, height: 180, borderRadius: 90,
-        backgroundColor: '#ddd6fe', opacity: 0.3,
     },
     bgCircle3: {
         position: 'absolute', top: '35%', left: -30,
         width: 100, height: 100, borderRadius: 50,
-        backgroundColor: '#f5e6d3', opacity: 0.5,
     },
     glow: {
         position: 'absolute', width: 200, height: 200, borderRadius: 100,
-        backgroundColor: '#a78bfa', opacity: 0.15,
+        opacity: 0.15,
     },
     logoContainer: {
         marginBottom: 20,
     },
     logoBox: {
-        width: 100, height: 100, borderRadius: 30,
-        backgroundColor: COLORS.primary,
+        width: 110, height: 110, borderRadius: 28,
         alignItems: 'center', justifyContent: 'center',
-        shadowColor: '#7c3aed',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.35,
+        shadowOpacity: 0.3,
         shadowRadius: 20,
         elevation: 12,
+        overflow: 'hidden',
     },
-    logoEmoji: {
-        fontSize: 44,
+    logoImage: {
+        width: 90, height: 90,
+        resizeMode: 'contain',
     },
     title: {
         fontSize: 38,
         fontWeight: '800',
-        color: COLORS.primary,
         letterSpacing: 4,
         marginBottom: 8,
     },
     subtitle: {
         fontSize: 14,
-        color: '#6b6280',
         textAlign: 'center',
         lineHeight: 20,
         marginBottom: 30,
     },
     loadingDot: {
         width: 10, height: 10, borderRadius: 5,
-        backgroundColor: COLORS.primary,
         marginBottom: 60,
     },
     bottomText: {
         position: 'absolute', bottom: 50,
         fontSize: 12, fontWeight: '500',
-        color: '#a09ab0', letterSpacing: 1,
+        letterSpacing: 1,
     },
 });

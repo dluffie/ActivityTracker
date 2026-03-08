@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../api';
+import { useTheme } from './ThemeContext';
 
 const AuthContext = createContext(null);
 
@@ -15,6 +16,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const { loadUserTheme } = useTheme();
 
     // Check auth on mount
     useEffect(() => {
@@ -30,6 +32,10 @@ export const AuthProvider = ({ children }) => {
                 const response = await authAPI.getMe();
                 setUser(response.data.user);
                 setIsAuthenticated(true);
+                // Restore user's theme preference
+                if (response.data.user.themePreference) {
+                    loadUserTheme(response.data.user.themePreference);
+                }
             } catch (error) {
                 console.error('Auth check failed:', error);
                 logout();
@@ -47,6 +53,11 @@ export const AuthProvider = ({ children }) => {
 
         setUser(userData);
         setIsAuthenticated(true);
+
+        // Apply user's saved theme
+        if (userData.themePreference) {
+            loadUserTheme(userData.themePreference);
+        }
 
         return userData;
     };
@@ -66,12 +77,19 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setIsAuthenticated(true);
 
+        // Apply user's saved theme
+        if (userData.themePreference) {
+            loadUserTheme(userData.themePreference);
+        }
+
         return userData;
     };
 
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('theme');
+        document.documentElement.setAttribute('data-theme', 'light');
         setUser(null);
         setIsAuthenticated(false);
     };

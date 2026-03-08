@@ -25,7 +25,20 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
         ? true  // Allow same-origin in production
-        : (process.env.CLIENT_URL || "http://localhost:5173"),
+        : function (origin, callback) {
+            // In development, allow common local origins + CLIENT_URL
+            const allowed = [
+                process.env.CLIENT_URL,
+                'http://localhost:5173',
+                'http://localhost:5174',
+                'http://localhost:3000',
+            ].filter(Boolean);
+            if (!origin || allowed.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(null, true); // Be permissive in dev
+            }
+        },
     credentials: true
 }));
 app.use(express.json({ limit: "50mb" })); // Increased for base64 images

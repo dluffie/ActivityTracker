@@ -1,18 +1,20 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../src/constants/theme';
+import { useTheme } from '../../src/context/ThemeContext';
 
 export default function StudentLayout() {
+    const { colors } = useTheme();
+
     return (
         <Tabs
             screenOptions={{
                 headerShown: false,
-                tabBarActiveTintColor: COLORS.primary,
-                tabBarInactiveTintColor: COLORS.textTertiary,
+                tabBarActiveTintColor: colors.primary,
+                tabBarInactiveTintColor: colors.textTertiary,
                 tabBarStyle: {
-                    backgroundColor: COLORS.white,
+                    backgroundColor: colors.tabBar,
                     borderTopWidth: 1,
-                    borderTopColor: COLORS.border,
+                    borderTopColor: colors.tabBarBorder,
                     paddingTop: 4,
                     paddingBottom: 8,
                     height: 60,

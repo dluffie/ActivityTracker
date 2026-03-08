@@ -4,9 +4,15 @@
     "slug": "activity-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "scheme": "activitytracker",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/daef46b0-8784-46d9-8a1f-27a0e348100b"
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -35,7 +41,8 @@
     "plugins": [
       "expo-router",
       "expo-image-picker",
-      "expo-document-picker"
+      "expo-document-picker",
+      "expo-updates"
     ],
     "extra": {
       "router": {},

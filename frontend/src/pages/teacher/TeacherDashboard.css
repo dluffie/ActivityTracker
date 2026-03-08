@@ -478,6 +478,406 @@
     border-color: var(--primary-600);
 }
 
+/* ==========================================
+   BRUTALIST / INDUSTRIAL THEME OVERRIDES
+   ========================================== */
+
+/* --- Blueprint Background --- */
+.td-brutalist-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.td-blueprint-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(10, 10, 10, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(10, 10, 10, 0.06) 1px, transparent 1px),
+        linear-gradient(rgba(10, 10, 10, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(10, 10, 10, 0.03) 1px, transparent 1px);
+    background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+    animation: tdBlueprintDrift 20s linear infinite;
+}
+
+@keyframes tdBlueprintDrift {
+    from {
+        background-position: 0 0, 0 0, 0 0, 0 0;
+    }
+
+    to {
+        background-position: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+    }
+}
+
+/* Crosshair markers */
+.td-crosshair {
+    position: fixed;
+    width: 30px;
+    height: 30px;
+    pointer-events: none;
+}
+
+.td-crosshair::before,
+.td-crosshair::after {
+    content: '';
+    position: absolute;
+    background: #0A0A0A;
+}
+
+.td-crosshair::before {
+    width: 100%;
+    height: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.td-crosshair::after {
+    height: 100%;
+    width: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.td-crosshair-tl {
+    top: 20px;
+    left: 20px;
+}
+
+.td-crosshair-tr {
+    top: 20px;
+    right: 20px;
+}
+
+.td-crosshair-bl {
+    bottom: 20px;
+    left: 20px;
+}
+
+.td-crosshair-br {
+    bottom: 20px;
+    right: 20px;
+}
+
+/* CONTROL ROOM stamp */
+.td-stamp {
+    position: fixed;
+    bottom: 60px;
+    right: -30px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(255, 107, 0, 0.12);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    transform: rotate(-35deg);
+    white-space: nowrap;
+    pointer-events: none;
+    animation: tdStampPulse 4s ease-in-out infinite;
+    border: 3px solid rgba(255, 107, 0, 0.08);
+    padding: 8px 24px;
+}
+
+@keyframes tdStampPulse {
+
+    0%,
+    100% {
+        opacity: 0.8;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* --- Brutalist Header --- */
+[data-theme="brutalist"] .td-header {
+    position: relative;
+    z-index: 1;
+}
+
+[data-theme="brutalist"] .td-header-info h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+[data-theme="brutalist"] .td-header-info p {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #555555;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+}
+
+/* --- Brutal Button --- */
+.td-brutal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 3px solid #0A0A0A;
+    background: #FF6B00;
+    color: #F5F0E8;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 4px 4px 0 #0A0A0A;
+}
+
+.td-brutal-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #0A0A0A;
+    background: #0A0A0A;
+    color: #FF6B00;
+}
+
+.td-brutal-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #0A0A0A;
+}
+
+[data-theme="brutalist"] .td-badge-count {
+    background: #0A0A0A;
+    color: #FFD600;
+    border-radius: 0;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+/* --- Brutalist Stat Cards --- */
+[data-theme="brutalist"] .td-stat-card {
+    background: #F5F0E8;
+    border: 3px solid #0A0A0A;
+    border-radius: 0;
+    box-shadow: 5px 5px 0 #0A0A0A;
+    position: relative;
+    overflow: visible;
+}
+
+[data-theme="brutalist"] .td-stat-card:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 8px 8px 0 #0A0A0A;
+}
+
+/* Colored left-border accents */
+[data-theme="brutalist"] .td-stat-blue {
+    border-left: 6px solid #3b82f6;
+}
+
+[data-theme="brutalist"] .td-stat-amber {
+    border-left: 6px solid #f59e0b;
+}
+
+[data-theme="brutalist"] .td-stat-emerald {
+    border-left: 6px solid #2E7D32;
+}
+
+[data-theme="brutalist"] .td-stat-rose {
+    border-left: 6px solid #D32F2F;
+}
+
+[data-theme="brutalist"] .td-stat-icon-wrap {
+    border-radius: 0;
+    box-shadow: 3px 3px 0 #0A0A0A;
+}
+
+[data-theme="brutalist"] .td-stat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #0A0A0A;
+}
+
+[data-theme="brutalist"] .td-stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #555555;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Brutalist pulse */
+[data-theme="brutalist"] .td-stat-pulse {
+    animation: tdBrutalPulse 2s step-end infinite;
+}
+
+@keyframes tdBrutalPulse {
+
+    0%,
+    100% {
+        border-color: #0A0A0A;
+    }
+
+    50% {
+        border-color: #FF6B00;
+    }
+}
+
+/* --- Brutalist Recent Items --- */
+[data-theme="brutalist"] .td-recent-item {
+    background: #EDE8DC;
+    border: 2px solid #0A0A0A;
+    border-radius: 0;
+    box-shadow: 3px 3px 0 #2A2A2A;
+    transition: all 0.15s ease;
+}
+
+[data-theme="brutalist"] .td-recent-item:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 #2A2A2A;
+    background: #FFD600;
+}
+
+[data-theme="brutalist"] .td-recent-avatar {
+    border-radius: 0;
+    background: #0A0A0A;
+    color: #FF6B00;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    box-shadow: 2px 2px 0 #555555;
+}
+
+[data-theme="brutalist"] .td-recent-info h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+}
+
+[data-theme="brutalist"] .td-recent-info p {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #555555;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* --- Brutalist Empty State --- */
+[data-theme="brutalist"] .td-empty-state p {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #555555;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* --- Brutalist Quick Actions --- */
+[data-theme="brutalist"] .td-action-card {
+    background: #F5F0E8;
+    border: 3px solid #0A0A0A;
+    border-radius: 0;
+    box-shadow: 5px 5px 0 #0A0A0A;
+    transition: all 0.15s ease;
+}
+
+[data-theme="brutalist"] .td-action-card:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 8px 8px 0 #0A0A0A;
+    border-color: #FF6B00;
+    background: #0A0A0A;
+    color: #F5F0E8;
+}
+
+[data-theme="brutalist"] .td-action-card:hover h4,
+[data-theme="brutalist"] .td-action-card:hover p {
+    color: #F5F0E8;
+}
+
+[data-theme="brutalist"] .td-action-card:hover .td-action-arrow {
+    color: #FF6B00;
+}
+
+[data-theme="brutalist"] .td-action-icon {
+    border-radius: 0;
+    box-shadow: 3px 3px 0 #0A0A0A;
+}
+
+[data-theme="brutalist"] .td-action-card h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+[data-theme="brutalist"] .td-action-card p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+[data-theme="brutalist"] .td-action-arrow {
+    color: #FF6B00;
+}
+
+/* --- Brutalist Subscription Prompt --- */
+[data-theme="brutalist"] .td-prompt-card {
+    border: 3px solid #0A0A0A;
+    border-radius: 0;
+    box-shadow: 6px 6px 0 #0A0A0A;
+    background: #F5F0E8;
+}
+
+[data-theme="brutalist"] .td-prompt-icon-wrap {
+    border-radius: 0;
+    background: #FFD600;
+    color: #0A0A0A;
+    border: 2px solid #0A0A0A;
+}
+
+[data-theme="brutalist"] .td-prompt-card h2 {
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+[data-theme="brutalist"] .td-prompt-card p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+}
+
+/* --- Brutalist Notifications --- */
+[data-theme="brutalist"] .td-notif-item {
+    border-bottom: 2px solid #0A0A0A;
+}
+
+[data-theme="brutalist"] .td-notif-unread {
+    background: rgba(255, 107, 0, 0.06);
+}
+
+[data-theme="brutalist"] .td-notif-title {
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.8rem;
+}
+
+[data-theme="brutalist"] .td-notif-message {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+}
+
+[data-theme="brutalist"] .td-notif-time {
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+[data-theme="brutalist"] .td-notif-dot {
+    border-radius: 0;
+    background: #FF6B00;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
     .td-stats-grid {

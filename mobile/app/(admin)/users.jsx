@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
-    RefreshControl, ActivityIndicator, TextInput, Alert,
+    RefreshControl, ActivityIndicator, TextInput, Alert, ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { useTheme } from '../../src/context/ThemeContext';
 import { adminAPI } from '../../src/api';
-import { COLORS, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
+import { SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 const ROLE_COLORS = {
     student: { text: '#7c3aed', bg: '#f3f0ff' },
@@ -16,11 +17,14 @@ const ROLE_COLORS = {
 };
 
 export default function UsersScreen() {
+    const { colors } = useTheme();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [users, setUsers] = useState([]);
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
+
+    const styles = useMemo(() => getStyles(colors), [colors]);
 
     useEffect(() => { fetchUsers(); }, []);
 
@@ -77,7 +81,7 @@ export default function UsersScreen() {
                     </View>
                 </View>
                 <TouchableOpacity onPress={() => handleDelete(item)} style={styles.deleteBtn}>
-                    <Ionicons name="trash-outline" size={18} color={COLORS.error} />
+                    <Ionicons name="trash-outline" size={18} color={colors.error} />
                 </TouchableOpacity>
             </View>
         );
@@ -91,8 +95,8 @@ export default function UsersScreen() {
             </View>
 
             <View style={styles.searchBar}>
-                <Ionicons name="search" size={18} color={COLORS.textTertiary} />
-                <TextInput style={styles.searchInput} value={search} onChangeText={setSearch} placeholder="Search users..." placeholderTextColor={COLORS.textTertiary} />
+                <Ionicons name="search" size={18} color={colors.textTertiary} />
+                <TextInput style={styles.searchInput} value={search} onChangeText={setSearch} placeholder="Search users..." placeholderTextColor={colors.textTertiary} />
             </View>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={{ paddingHorizontal: SPACING.xl }}>
@@ -104,16 +108,16 @@ export default function UsersScreen() {
             </ScrollView>
 
             {loading ? (
-                <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
+                <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View>
             ) : (
                 <FlatList
                     data={filtered}
                     keyExtractor={item => item._id}
                     renderItem={renderItem}
                     contentContainerStyle={{ padding: SPACING.xl, paddingTop: SPACING.sm }}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchUsers(); }} colors={[COLORS.primary]} />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchUsers(); }} colors={[colors.primary]} />}
                     ListEmptyComponent={
-                        <View style={styles.empty}><Ionicons name="people-outline" size={56} color={COLORS.textTertiary} /><Text style={styles.emptyText}>No users found</Text></View>
+                        <View style={styles.empty}><Ionicons name="people-outline" size={56} color={colors.textTertiary} /><Text style={styles.emptyText}>No users found</Text></View>
                     }
                 />
             )}
@@ -121,30 +125,30 @@ export default function UsersScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background },
+const getStyles = (colors) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.xl, paddingTop: SPACING.lg, paddingBottom: SPACING.sm },
-    title: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary },
-    countText: { fontSize: 13, color: COLORS.textTertiary, fontWeight: '500' },
-    searchBar: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.xl, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md, backgroundColor: COLORS.white, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, marginBottom: SPACING.sm },
-    searchInput: { flex: 1, fontSize: 14, color: COLORS.textPrimary },
+    title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
+    countText: { fontSize: 13, color: colors.textTertiary, fontWeight: '500' },
+    searchBar: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.xl, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md, backgroundColor: colors.card, borderRadius: RADIUS.md, borderWidth: 1, borderColor: colors.border, marginBottom: SPACING.sm },
+    searchInput: { flex: 1, fontSize: 14, color: colors.textPrimary },
     filterRow: { maxHeight: 50, marginBottom: SPACING.sm },
-    filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.border, marginRight: 8 },
-    filterChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-    filterText: { fontSize: 13, fontWeight: '500', color: COLORS.textSecondary },
-    filterTextActive: { color: COLORS.white, fontWeight: '600' },
+    filterChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, marginRight: 8 },
+    filterChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    filterText: { fontSize: 13, fontWeight: '500', color: colors.textSecondary },
+    filterTextActive: { color: colors.textInverse, fontWeight: '600' },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    card: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, backgroundColor: COLORS.white, padding: SPACING.lg, borderRadius: RADIUS.lg, marginBottom: SPACING.sm, ...SHADOWS.sm },
+    card: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, backgroundColor: colors.card, padding: SPACING.lg, borderRadius: RADIUS.lg, marginBottom: SPACING.sm, ...SHADOWS.sm },
     avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
     avatarText: { fontSize: 17, fontWeight: '700' },
     cardBody: { flex: 1 },
-    cardName: { fontSize: 15, fontWeight: '600', color: COLORS.textPrimary },
-    cardMeta: { fontSize: 12, color: COLORS.textTertiary, marginTop: 1 },
+    cardName: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
+    cardMeta: { fontSize: 12, color: colors.textTertiary, marginTop: 1 },
     cardTags: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginTop: SPACING.xs },
     rolePill: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
     roleText: { fontSize: 11, fontWeight: '600', textTransform: 'capitalize' },
-    regText: { fontSize: 11, color: COLORS.textTertiary },
+    regText: { fontSize: 11, color: colors.textTertiary },
     deleteBtn: { padding: SPACING.sm },
     empty: { alignItems: 'center', paddingVertical: 60 },
-    emptyText: { fontSize: 15, color: COLORS.textTertiary, marginTop: SPACING.md },
+    emptyText: { fontSize: 15, color: colors.textTertiary, marginTop: SPACING.md },
 });

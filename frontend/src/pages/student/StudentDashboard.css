@@ -344,6 +344,49 @@
     margin-top: var(--space-2);
 }
 
+/* ===== GOAL ACHIEVED CELEBRATION ===== */
+.sd-goal-achieved {
+    border: 2px solid rgba(16, 185, 129, 0.3) !important;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.04) 0%, var(--bg-card) 100%) !important;
+    animation: sdAchievedPulse 3s ease-in-out infinite;
+}
+
+@keyframes sdAchievedPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 20px 2px rgba(16, 185, 129, 0.12);
+    }
+}
+
+.sd-goal-achieved .sd-stat-value {
+    background: linear-gradient(135deg, #059669, #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.sd-progress-achieved {
+    background: rgba(16, 185, 129, 0.15) !important;
+}
+
+.sd-progress-achieved .sd-progress-fill {
+    background: linear-gradient(90deg, #10b981, #34d399) !important;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.sd-achieved-label {
+    display: flex !important;
+    align-items: center;
+    gap: 0.375rem;
+    color: #059669 !important;
+    font-weight: 700;
+}
+
 [data-theme="cyberpunk"] .sd-progress-track {
     background: rgba(0, 240, 255, 0.08);
     border: 1px solid rgba(0, 240, 255, 0.1);
@@ -536,6 +579,394 @@
 [data-theme="cyberpunk"] .sd-tips-card li::before {
     content: '>';
     color: #00f0ff;
+}
+
+/* ==========================================
+   BRUTALIST / INDUSTRIAL THEME OVERRIDES
+   ========================================== */
+
+/* --- Blueprint Background --- */
+.sd-brutalist-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.sd-blueprint-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(10, 10, 10, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(10, 10, 10, 0.06) 1px, transparent 1px),
+        linear-gradient(rgba(10, 10, 10, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(10, 10, 10, 0.03) 1px, transparent 1px);
+    background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+    animation: blueprintDrift 20s linear infinite;
+}
+
+@keyframes blueprintDrift {
+    from {
+        background-position: 0 0, 0 0, 0 0, 0 0;
+    }
+
+    to {
+        background-position: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+    }
+}
+
+/* Crosshair markers */
+.sd-crosshair {
+    position: fixed;
+    width: 30px;
+    height: 30px;
+    pointer-events: none;
+}
+
+.sd-crosshair::before,
+.sd-crosshair::after {
+    content: '';
+    position: absolute;
+    background: #0A0A0A;
+}
+
+.sd-crosshair::before {
+    width: 100%;
+    height: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.sd-crosshair::after {
+    height: 100%;
+    width: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.sd-crosshair-tl {
+    top: 20px;
+    left: 20px;
+}
+
+.sd-crosshair-tr {
+    top: 20px;
+    right: 20px;
+}
+
+.sd-crosshair-bl {
+    bottom: 20px;
+    left: 20px;
+}
+
+.sd-crosshair-br {
+    bottom: 20px;
+    right: 20px;
+}
+
+/* UNDER CONSTRUCTION stamp */
+.sd-stamp {
+    position: fixed;
+    bottom: 60px;
+    right: -30px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(255, 107, 0, 0.12);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    transform: rotate(-35deg);
+    white-space: nowrap;
+    pointer-events: none;
+    animation: stampPulse 4s ease-in-out infinite;
+    border: 3px solid rgba(255, 107, 0, 0.08);
+    padding: 8px 24px;
+}
+
+@keyframes stampPulse {
+
+    0%,
+    100% {
+        opacity: 0.8;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* --- Brutalist Theme Switcher --- */
+[data-theme="brutalist"] .sd-theme-switcher {
+    background: #E0D9CC;
+    border-color: #0A0A0A;
+    border-width: 2px;
+    border-radius: 0;
+}
+
+[data-theme="brutalist"] .sd-theme-btn {
+    border-radius: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+}
+
+[data-theme="brutalist"] .sd-theme-btn-brutal.active {
+    background: #FF6B00;
+    color: #F5F0E8;
+    box-shadow: 2px 2px 0 #0A0A0A;
+}
+
+/* --- Brutalist Header --- */
+[data-theme="brutalist"] .sd-header-info h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+[data-theme="brutalist"] .sd-header-info p {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #555555;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+}
+
+/* --- Brutal Button --- */
+.sd-brutal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 3px solid #0A0A0A;
+    background: #FF6B00;
+    color: #F5F0E8;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 4px 4px 0 #0A0A0A;
+}
+
+.sd-brutal-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #0A0A0A;
+    background: #0A0A0A;
+    color: #FF6B00;
+}
+
+.sd-brutal-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #0A0A0A;
+}
+
+/* --- Brutalist Icon Variants --- */
+.sd-icon-brutal-orange {
+    background: #FF6B00;
+    color: #F5F0E8;
+    border: 2px solid #0A0A0A;
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0 #0A0A0A;
+}
+
+.sd-icon-brutal-yellow {
+    background: #FFD600;
+    color: #0A0A0A;
+    border: 2px solid #0A0A0A;
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0 #0A0A0A;
+}
+
+.sd-icon-brutal-green {
+    background: #2E7D32;
+    color: #F5F0E8;
+    border: 2px solid #0A0A0A;
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0 #0A0A0A;
+}
+
+.sd-icon-brutal-red {
+    background: #D32F2F;
+    color: #F5F0E8;
+    border: 2px solid #0A0A0A;
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0 #0A0A0A;
+}
+
+/* --- Brutalist Stat Cards --- */
+[data-theme="brutalist"] .sd-stat-card {
+    background: #F5F0E8;
+    border: 3px solid #0A0A0A;
+    border-radius: 0;
+    box-shadow: 5px 5px 0 #0A0A0A;
+    position: relative;
+    overflow: visible;
+}
+
+[data-theme="brutalist"] .sd-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: repeating-linear-gradient(90deg,
+            #FFD600 0px, #FFD600 10px,
+            #0A0A0A 10px, #0A0A0A 20px);
+}
+
+[data-theme="brutalist"] .sd-stat-card:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 8px 8px 0 #0A0A0A;
+}
+
+[data-theme="brutalist"] .sd-stat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 3rem;
+    font-weight: 700;
+    color: #0A0A0A;
+}
+
+[data-theme="brutalist"] .sd-stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #555555;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* --- Brutalist Progress Bar --- */
+[data-theme="brutalist"] .sd-progress-track {
+    background: #E0D9CC;
+    border: 2px solid #0A0A0A;
+    border-radius: 0;
+    height: 14px;
+    overflow: hidden;
+}
+
+[data-theme="brutalist"] .sd-progress-fill {
+    background: repeating-linear-gradient(-45deg,
+            #FF6B00 0px, #FF6B00 8px,
+            #FFD600 8px, #FFD600 16px);
+    border-radius: 0;
+    position: relative;
+}
+
+[data-theme="brutalist"] .sd-progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #0A0A0A;
+}
+
+[data-theme="brutalist"] .sd-progress-label {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #555555;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* --- Brutalist Card --- */
+.brutal-card {
+    position: relative;
+}
+
+[data-theme="brutalist"] .brutal-card {
+    border: 3px solid #0A0A0A !important;
+    border-radius: 0 !important;
+    box-shadow: 5px 5px 0 #0A0A0A;
+    background: #F5F0E8;
+}
+
+/* --- Brutalist Recent Items --- */
+[data-theme="brutalist"] .sd-recent-item {
+    background: #EDE8DC;
+    border: 2px solid #0A0A0A;
+    border-radius: 0;
+    box-shadow: 3px 3px 0 #2A2A2A;
+    transition: all 0.15s ease;
+}
+
+[data-theme="brutalist"] .sd-recent-item:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 #2A2A2A;
+    background: #FFD600;
+}
+
+[data-theme="brutalist"] .sd-recent-info h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    color: #0A0A0A;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.03em;
+}
+
+[data-theme="brutalist"] .sd-recent-info p {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #555555;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+[data-theme="brutalist"] .sd-points {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #2E7D32;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+/* --- Brutalist Empty State --- */
+[data-theme="brutalist"] .sd-empty p {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #555555;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* --- Brutalist Tips Card --- */
+[data-theme="brutalist"] .sd-tips-card {
+    background: #F5F0E8;
+    border: 3px solid #0A0A0A;
+    border-radius: 0;
+    box-shadow: 5px 5px 0 #0A0A0A;
+}
+
+[data-theme="brutalist"] .sd-tips-card h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    color: #0A0A0A;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 3px solid #0A0A0A;
+    padding-bottom: var(--space-3);
+}
+
+[data-theme="brutalist"] .sd-tips-card li {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #2A2A2A;
+    font-size: 0.85rem;
+    border-bottom: 1px dashed #0A0A0A;
+    padding: var(--space-3) 0;
+    padding-left: var(--space-4);
+}
+
+[data-theme="brutalist"] .sd-tips-card li::before {
+    content: '→';
+    color: #FF6B00;
+    font-weight: 700;
 }
 
 /* ===== RESPONSIVE ===== */

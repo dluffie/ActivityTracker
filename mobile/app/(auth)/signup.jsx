@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet,
     KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
@@ -7,11 +7,13 @@ import { router, Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../src/context/AuthContext';
+import { useTheme } from '../../src/context/ThemeContext';
 import { authAPI } from '../../src/api';
-import { COLORS, SPACING, RADIUS, BRANCHES, SEMESTERS } from '../../src/constants/theme';
+import { SPACING, RADIUS, BRANCHES, SEMESTERS } from '../../src/constants/theme';
 
 export default function SignupScreen() {
     const { verifyOtp } = useAuth();
+    const { colors } = useTheme();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [otp, setOtp] = useState('');
@@ -23,6 +25,7 @@ export default function SignupScreen() {
         isLateral: false,
     });
 
+    const styles = useMemo(() => getStyles(colors), [colors]);
     const update = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
 
     const handleRegister = async () => {
@@ -117,15 +120,14 @@ export default function SignupScreen() {
             <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                     <View style={styles.header}>
-                        <View style={[styles.logoCircle, { backgroundColor: COLORS.success }]}>
-                            <Ionicons name="shield-checkmark" size={36} color={COLORS.white} />
+                        <View style={[styles.logoCircle, { backgroundColor: colors.success }]}>
+                            <Ionicons name="shield-checkmark" size={36} color={colors.textInverse} />
                         </View>
                         <Text style={styles.title}>Verify Email</Text>
                         <Text style={styles.subtitle}>We've sent a 6-digit OTP to</Text>
                         <Text style={styles.emailText}>{formData.email}</Text>
                     </View>
 
-                    {/* Spam Warning */}
                     <View style={styles.spamWarning}>
                         <Ionicons name="mail-outline" size={16} color="#dc2626" />
                         <Text style={styles.spamText}>
@@ -133,7 +135,6 @@ export default function SignupScreen() {
                         </Text>
                     </View>
 
-                    {/* OTP Boxes */}
                     <Text style={styles.otpLabel}>ENTER OTP</Text>
                     <View style={styles.otpRow}>
                         {[0, 1, 2, 3, 4, 5].map(i => (
@@ -156,7 +157,7 @@ export default function SignupScreen() {
                         onPress={handleVerifyOtp}
                         disabled={loading || otp.length !== 6}
                     >
-                        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Verify & Complete</Text>}
+                        {loading ? <ActivityIndicator color={colors.textInverse} /> : <Text style={styles.buttonText}>Verify & Complete</Text>}
                     </TouchableOpacity>
 
                     <View style={styles.otpActions}>
@@ -178,74 +179,64 @@ export default function SignupScreen() {
             <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
                 <View style={styles.header}>
                     <View style={styles.logoCircle}>
-                        <Ionicons name="person-add" size={32} color={COLORS.white} />
+                        <Ionicons name="person-add" size={32} color={colors.textInverse} />
                     </View>
                     <Text style={styles.title}>Create Account</Text>
                     <Text style={styles.subtitle}>Join the Activity Point System</Text>
                 </View>
 
                 <View style={styles.form}>
-                    {/* Full Name */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Full Name</Text>
                         <View style={styles.inputRow}>
-                            <Ionicons name="person-outline" size={20} color={COLORS.textTertiary} />
-                            <TextInput style={styles.input} value={formData.fullName} onChangeText={v => update('fullName', v)} placeholder="Enter full name" placeholderTextColor={COLORS.textTertiary} />
+                            <Ionicons name="person-outline" size={20} color={colors.textTertiary} />
+                            <TextInput style={styles.input} value={formData.fullName} onChangeText={v => update('fullName', v)} placeholder="Enter full name" placeholderTextColor={colors.textTertiary} />
                         </View>
                     </View>
 
-                    {/* Email */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Email</Text>
                         <View style={styles.inputRow}>
-                            <Ionicons name="mail-outline" size={20} color={COLORS.textTertiary} />
-                            <TextInput style={styles.input} value={formData.email} onChangeText={v => update('email', v)} placeholder="Enter email" placeholderTextColor={COLORS.textTertiary} autoCapitalize="none" keyboardType="email-address" />
+                            <Ionicons name="mail-outline" size={20} color={colors.textTertiary} />
+                            <TextInput style={styles.input} value={formData.email} onChangeText={v => update('email', v)} placeholder="Enter email" placeholderTextColor={colors.textTertiary} autoCapitalize="none" keyboardType="email-address" />
                         </View>
                     </View>
 
-                    {/* Registration Number */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Registration Number</Text>
                         <View style={styles.inputRow}>
-                            <Ionicons name="card-outline" size={20} color={COLORS.textTertiary} />
-                            <TextInput style={styles.input} value={formData.registrationNumber} onChangeText={v => update('registrationNumber', v)} placeholder="e.g. KTE22CS001" placeholderTextColor={COLORS.textTertiary} autoCapitalize="characters" />
+                            <Ionicons name="card-outline" size={20} color={colors.textTertiary} />
+                            <TextInput style={styles.input} value={formData.registrationNumber} onChangeText={v => update('registrationNumber', v)} placeholder="e.g. KTE22CS001" placeholderTextColor={colors.textTertiary} autoCapitalize="characters" />
                         </View>
                     </View>
 
-                    {/* Branch */}
                     {renderPicker('Branch', formData.branch, BRANCHES, v => update('branch', v))}
-
-                    {/* Semester */}
                     {renderPicker('Semester', formData.semester, SEMESTERS, v => update('semester', v))}
 
-                    {/* DOB */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Date of Birth</Text>
                         <View style={styles.inputRow}>
-                            <Ionicons name="calendar-outline" size={20} color={COLORS.textTertiary} />
-                            <TextInput style={styles.input} value={formData.dob} onChangeText={v => update('dob', v)} placeholder="YYYY-MM-DD" placeholderTextColor={COLORS.textTertiary} keyboardType="numbers-and-punctuation" />
+                            <Ionicons name="calendar-outline" size={20} color={colors.textTertiary} />
+                            <TextInput style={styles.input} value={formData.dob} onChangeText={v => update('dob', v)} placeholder="YYYY-MM-DD" placeholderTextColor={colors.textTertiary} keyboardType="numbers-and-punctuation" />
                         </View>
                     </View>
 
-                    {/* Password */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Password</Text>
                         <View style={styles.inputRow}>
-                            <Ionicons name="lock-closed-outline" size={20} color={COLORS.textTertiary} />
-                            <TextInput style={styles.input} value={formData.password} onChangeText={v => update('password', v)} placeholder="Min 6 characters" placeholderTextColor={COLORS.textTertiary} secureTextEntry />
+                            <Ionicons name="lock-closed-outline" size={20} color={colors.textTertiary} />
+                            <TextInput style={styles.input} value={formData.password} onChangeText={v => update('password', v)} placeholder="Min 6 characters" placeholderTextColor={colors.textTertiary} secureTextEntry />
                         </View>
                     </View>
 
-                    {/* Confirm Password */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Confirm Password</Text>
                         <View style={styles.inputRow}>
-                            <Ionicons name="lock-closed-outline" size={20} color={COLORS.textTertiary} />
-                            <TextInput style={styles.input} value={formData.confirmPassword} onChangeText={v => update('confirmPassword', v)} placeholder="Re-enter password" placeholderTextColor={COLORS.textTertiary} secureTextEntry />
+                            <Ionicons name="lock-closed-outline" size={20} color={colors.textTertiary} />
+                            <TextInput style={styles.input} value={formData.confirmPassword} onChangeText={v => update('confirmPassword', v)} placeholder="Re-enter password" placeholderTextColor={colors.textTertiary} secureTextEntry />
                         </View>
                     </View>
 
-                    {/* Lateral Entry */}
                     <TouchableOpacity
                         style={[styles.lateralBox, formData.isLateral && styles.lateralBoxActive]}
                         onPress={() => update('isLateral', !formData.isLateral)}
@@ -253,7 +244,7 @@ export default function SignupScreen() {
                         <Ionicons
                             name={formData.isLateral ? 'checkbox' : 'square-outline'}
                             size={22}
-                            color={formData.isLateral ? COLORS.primary : COLORS.textTertiary}
+                            color={formData.isLateral ? colors.primary : colors.textTertiary}
                         />
                         <View style={{ flex: 1 }}>
                             <Text style={styles.lateralText}>I am a Lateral Entry student</Text>
@@ -266,7 +257,7 @@ export default function SignupScreen() {
                         onPress={handleRegister}
                         disabled={loading}
                     >
-                        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create Account</Text>}
+                        {loading ? <ActivityIndicator color={colors.textInverse} /> : <Text style={styles.buttonText}>Create Account</Text>}
                     </TouchableOpacity>
 
                     <View style={styles.footer}>
@@ -283,52 +274,52 @@ export default function SignupScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.white },
+const getStyles = (colors) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.card },
     scroll: { flexGrow: 1, padding: SPACING.xl, paddingTop: 60 },
     header: { alignItems: 'center', marginBottom: SPACING.xxl },
     logoCircle: {
-        width: 68, height: 68, borderRadius: 34, backgroundColor: COLORS.primary,
+        width: 68, height: 68, borderRadius: 34, backgroundColor: colors.primary,
         alignItems: 'center', justifyContent: 'center', marginBottom: SPACING.md,
     },
-    title: { fontSize: 26, fontWeight: '700', color: COLORS.textPrimary, marginBottom: SPACING.xs },
-    subtitle: { fontSize: 14, color: COLORS.textSecondary },
-    emailText: { fontSize: 15, fontWeight: '600', color: COLORS.textPrimary, marginTop: 4 },
+    title: { fontSize: 26, fontWeight: '700', color: colors.textPrimary, marginBottom: SPACING.xs },
+    subtitle: { fontSize: 14, color: colors.textSecondary },
+    emailText: { fontSize: 15, fontWeight: '600', color: colors.textPrimary, marginTop: 4 },
     form: { gap: SPACING.md },
     inputGroup: { gap: 4 },
-    label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginLeft: 4 },
+    label: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginLeft: 4 },
     inputRow: {
         flexDirection: 'row', alignItems: 'center', gap: SPACING.sm,
-        backgroundColor: COLORS.background, borderRadius: RADIUS.md,
+        backgroundColor: colors.background, borderRadius: RADIUS.md,
         paddingHorizontal: SPACING.lg, paddingVertical: Platform.OS === 'ios' ? 14 : 10,
-        borderWidth: 1, borderColor: COLORS.border,
+        borderWidth: 1, borderColor: colors.border,
     },
-    input: { flex: 1, fontSize: 15, color: COLORS.textPrimary },
+    input: { flex: 1, fontSize: 15, color: colors.textPrimary },
     chipRow: { flexDirection: 'row', marginTop: 4 },
     chip: {
         paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-        backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.border, marginRight: 8,
+        backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, marginRight: 8,
     },
-    chipActive: { backgroundColor: COLORS.primaryBg, borderColor: COLORS.primary },
-    chipText: { fontSize: 13, color: COLORS.textSecondary, fontWeight: '500' },
-    chipTextActive: { color: COLORS.primary, fontWeight: '600' },
+    chipActive: { backgroundColor: colors.primaryBg, borderColor: colors.primary },
+    chipText: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
+    chipTextActive: { color: colors.primary, fontWeight: '600' },
     lateralBox: {
         flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.sm,
         padding: SPACING.lg, borderRadius: RADIUS.md,
-        backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.border,
+        backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border,
     },
-    lateralBoxActive: { backgroundColor: COLORS.primaryBg, borderColor: COLORS.primaryBorder },
-    lateralText: { fontSize: 14, fontWeight: '600', color: COLORS.textPrimary },
-    lateralHint: { fontSize: 12, color: COLORS.textTertiary, marginTop: 2 },
+    lateralBoxActive: { backgroundColor: colors.primaryBg, borderColor: colors.primaryBorder },
+    lateralText: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+    lateralHint: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
     button: {
-        backgroundColor: COLORS.primary, paddingVertical: SPACING.lg,
+        backgroundColor: colors.primary, paddingVertical: SPACING.lg,
         borderRadius: RADIUS.md, alignItems: 'center', marginTop: SPACING.sm,
     },
     buttonDisabled: { opacity: 0.6 },
-    buttonText: { fontSize: 16, fontWeight: '600', color: COLORS.white },
+    buttonText: { fontSize: 16, fontWeight: '600', color: colors.textInverse },
     footer: { flexDirection: 'row', justifyContent: 'center', marginTop: SPACING.lg, marginBottom: SPACING.xxxl },
-    footerText: { fontSize: 14, color: COLORS.textSecondary },
-    footerLink: { fontSize: 14, fontWeight: '600', color: COLORS.primary },
+    footerText: { fontSize: 14, color: colors.textSecondary },
+    footerLink: { fontSize: 14, fontWeight: '600', color: colors.primary },
     // OTP Styles
     spamWarning: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
@@ -337,15 +328,15 @@ const styles = StyleSheet.create({
     },
     spamText: { fontSize: 13, color: '#dc2626' },
     spamBold: { fontWeight: '700', color: '#b91c1c' },
-    otpLabel: { fontSize: 12, fontWeight: '600', color: COLORS.textTertiary, textAlign: 'center', letterSpacing: 1, marginBottom: 10 },
+    otpLabel: { fontSize: 12, fontWeight: '600', color: colors.textTertiary, textAlign: 'center', letterSpacing: 1, marginBottom: 10 },
     otpRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: SPACING.xl },
     otpBox: {
         width: 46, height: 54, borderRadius: RADIUS.md, borderWidth: 2,
-        borderColor: COLORS.border, backgroundColor: COLORS.background,
-        textAlign: 'center', fontSize: 20, fontWeight: '700', color: COLORS.textPrimary,
+        borderColor: colors.border, backgroundColor: colors.background,
+        textAlign: 'center', fontSize: 20, fontWeight: '700', color: colors.textPrimary,
     },
-    otpBoxFilled: { borderColor: COLORS.primaryLight, backgroundColor: COLORS.primaryBg },
+    otpBoxFilled: { borderColor: colors.primaryLight, backgroundColor: colors.primaryBg },
     otpActions: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: SPACING.lg },
-    otpActionText: { fontSize: 14, fontWeight: '500', color: COLORS.primary },
-    otpDivider: { fontSize: 14, color: COLORS.border },
+    otpActionText: { fontSize: 14, fontWeight: '500', color: colors.primary },
+    otpDivider: { fontSize: 14, color: colors.border },
 });

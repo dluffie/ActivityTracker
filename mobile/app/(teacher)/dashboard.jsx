@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
     RefreshControl, ActivityIndicator,
@@ -8,16 +8,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../src/context/AuthContext';
-import { teacherAPI, notificationAPI } from '../../src/api';
-import { COLORS, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { teacherAPI } from '../../src/api';
+import { SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 export default function TeacherDashboard() {
     const { user } = useAuth();
+    const { colors } = useTheme();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [stats, setStats] = useState(null);
     const [recentActivities, setRecentActivities] = useState([]);
     const [needsSubscription, setNeedsSubscription] = useState(false);
+
+    const styles = useMemo(() => getStyles(colors), [colors]);
 
     useEffect(() => { checkAndLoad(); }, []);
 
@@ -51,16 +55,16 @@ export default function TeacherDashboard() {
 
     const getStatusColor = (s) => {
         switch (s) {
-            case 'approved': return COLORS.success;
-            case 'rejected': return COLORS.error;
-            default: return COLORS.warning;
+            case 'approved': return colors.success;
+            case 'rejected': return colors.error;
+            default: return colors.warning;
         }
     };
 
     if (loading) {
         return (
             <SafeAreaView style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
+                <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={styles.loadingText}>Loading dashboard...</Text>
             </SafeAreaView>
         );
@@ -69,7 +73,7 @@ export default function TeacherDashboard() {
     if (needsSubscription) {
         return (
             <SafeAreaView style={styles.emptyContainer}>
-                <Ionicons name="school-outline" size={64} color={COLORS.textTertiary} />
+                <Ionicons name="school-outline" size={64} color={colors.textTertiary} />
                 <Text style={styles.emptyTitle}>Subscribe to Classes</Text>
                 <Text style={styles.emptyDesc}>You need to subscribe to classes to start managing student activities.</Text>
             </SafeAreaView>
@@ -82,9 +86,8 @@ export default function TeacherDashboard() {
         <SafeAreaView style={styles.container} edges={['top']}>
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchDashboard(); }} colors={[COLORS.primary]} />}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchDashboard(); }} colors={[colors.primary]} />}
             >
-                {/* Header */}
                 <View style={styles.header}>
                     <View>
                         <Text style={styles.greeting}>Welcome, {user?.fullName?.split(' ')[0]} 👋</Text>
@@ -92,13 +95,12 @@ export default function TeacherDashboard() {
                     </View>
                 </View>
 
-                {/* Stats Grid */}
                 <View style={styles.statsGrid}>
                     {[
-                        { label: 'Students', value: stats?.totalStudents || 0, icon: 'people', color: COLORS.primary, bg: COLORS.primaryBg },
-                        { label: 'Pending', value: pending, icon: 'time', color: COLORS.warning, bg: COLORS.warningBg },
-                        { label: 'Approved', value: stats?.approvedActivities || 0, icon: 'checkmark-circle', color: COLORS.success, bg: COLORS.successBg },
-                        { label: 'Rejected', value: stats?.rejectedActivities || 0, icon: 'close-circle', color: COLORS.error, bg: COLORS.errorBg },
+                        { label: 'Students', value: stats?.totalStudents || 0, icon: 'people', color: colors.primary, bg: colors.primaryBg },
+                        { label: 'Pending', value: pending, icon: 'time', color: colors.warning, bg: colors.warningBg },
+                        { label: 'Approved', value: stats?.approvedActivities || 0, icon: 'checkmark-circle', color: colors.success, bg: colors.successBg },
+                        { label: 'Rejected', value: stats?.rejectedActivities || 0, icon: 'close-circle', color: colors.error, bg: colors.errorBg },
                     ].map((stat) => (
                         <View key={stat.label} style={styles.statCard}>
                             <View style={[styles.statIcon, { backgroundColor: stat.bg }]}>
@@ -110,20 +112,18 @@ export default function TeacherDashboard() {
                     ))}
                 </View>
 
-                {/* Quick Actions */}
                 <View style={styles.actions}>
                     <TouchableOpacity style={styles.actionPrimary} onPress={() => router.push('/(teacher)/verification')}>
-                        <Ionicons name="checkmark-circle" size={22} color={COLORS.white} />
+                        <Ionicons name="checkmark-circle" size={22} color={colors.textInverse} />
                         <Text style={styles.actionPrimaryText}>Verify Activities</Text>
                         {pending > 0 && <View style={styles.actionBadge}><Text style={styles.actionBadgeText}>{pending}</Text></View>}
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.actionSecondary} onPress={() => router.push('/(teacher)/submit')}>
-                        <Ionicons name="add-circle" size={22} color={COLORS.primary} />
+                        <Ionicons name="add-circle" size={22} color={colors.primary} />
                         <Text style={styles.actionSecondaryText}>Submit for Student</Text>
                     </TouchableOpacity>
                 </View>
 
-                {/* Recent */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Recent Submissions</Text>
                     {recentActivities.length > 0 ? (
@@ -154,67 +154,67 @@ export default function TeacherDashboard() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background },
-    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.white },
-    loadingText: { marginTop: SPACING.md, color: COLORS.textSecondary },
-    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.xl, backgroundColor: COLORS.background },
-    emptyTitle: { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary, marginTop: SPACING.lg },
-    emptyDesc: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', marginTop: SPACING.sm },
+const getStyles = (colors) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.card },
+    loadingText: { marginTop: SPACING.md, color: colors.textSecondary },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.xl, backgroundColor: colors.background },
+    emptyTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary, marginTop: SPACING.lg },
+    emptyDesc: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', marginTop: SPACING.sm },
     header: {
         paddingHorizontal: SPACING.xl, paddingTop: SPACING.lg, paddingBottom: SPACING.md,
     },
-    greeting: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary },
-    subGreeting: { fontSize: 14, color: COLORS.textSecondary, marginTop: 2 },
+    greeting: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
+    subGreeting: { fontSize: 14, color: colors.textSecondary, marginTop: 2 },
     statsGrid: {
         flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: SPACING.xl, gap: SPACING.sm,
         marginBottom: SPACING.lg,
     },
     statCard: {
-        width: '48%', backgroundColor: COLORS.white, borderRadius: RADIUS.lg,
+        width: '48%', backgroundColor: colors.card, borderRadius: RADIUS.lg,
         padding: SPACING.lg, alignItems: 'center', ...SHADOWS.sm,
     },
     statIcon: {
         width: 44, height: 44, borderRadius: 22,
         alignItems: 'center', justifyContent: 'center', marginBottom: SPACING.sm,
     },
-    statValue: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary },
-    statLabel: { fontSize: 12, color: COLORS.textTertiary, fontWeight: '500', marginTop: 2 },
+    statValue: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
+    statLabel: { fontSize: 12, color: colors.textTertiary, fontWeight: '500', marginTop: 2 },
     actions: {
         flexDirection: 'row', paddingHorizontal: SPACING.xl, gap: SPACING.sm, marginBottom: SPACING.xl,
     },
     actionPrimary: {
         flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm,
-        backgroundColor: COLORS.primary, paddingVertical: SPACING.md, borderRadius: RADIUS.md,
+        backgroundColor: colors.primary, paddingVertical: SPACING.md, borderRadius: RADIUS.md,
     },
-    actionPrimaryText: { fontSize: 14, fontWeight: '600', color: COLORS.white },
+    actionPrimaryText: { fontSize: 14, fontWeight: '600', color: colors.textInverse },
     actionBadge: {
-        backgroundColor: COLORS.white, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10,
+        backgroundColor: colors.card, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10,
     },
-    actionBadgeText: { fontSize: 11, fontWeight: '700', color: COLORS.primary },
+    actionBadgeText: { fontSize: 11, fontWeight: '700', color: colors.primary },
     actionSecondary: {
         flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm,
-        backgroundColor: COLORS.primaryBg, paddingVertical: SPACING.md, borderRadius: RADIUS.md,
-        borderWidth: 1, borderColor: COLORS.primaryBorder,
+        backgroundColor: colors.primaryBg, paddingVertical: SPACING.md, borderRadius: RADIUS.md,
+        borderWidth: 1, borderColor: colors.primaryBorder,
     },
-    actionSecondaryText: { fontSize: 14, fontWeight: '600', color: COLORS.primary },
+    actionSecondaryText: { fontSize: 14, fontWeight: '600', color: colors.primary },
     section: { paddingHorizontal: SPACING.xl, marginBottom: SPACING.lg },
-    sectionTitle: { fontSize: 18, fontWeight: '600', color: COLORS.textPrimary, marginBottom: SPACING.md },
+    sectionTitle: { fontSize: 18, fontWeight: '600', color: colors.textPrimary, marginBottom: SPACING.md },
     recentItem: {
         flexDirection: 'row', alignItems: 'center', gap: SPACING.sm,
-        backgroundColor: COLORS.white, padding: SPACING.md, borderRadius: RADIUS.md,
+        backgroundColor: colors.card, padding: SPACING.md, borderRadius: RADIUS.md,
         marginBottom: SPACING.sm, ...SHADOWS.sm,
     },
     recentAvatar: {
         width: 38, height: 38, borderRadius: 19,
-        backgroundColor: COLORS.primaryBg, alignItems: 'center', justifyContent: 'center',
+        backgroundColor: colors.primaryBg, alignItems: 'center', justifyContent: 'center',
     },
-    recentAvatarText: { fontSize: 14, fontWeight: '700', color: COLORS.primary },
+    recentAvatarText: { fontSize: 14, fontWeight: '700', color: colors.primary },
     recentInfo: { flex: 1 },
-    recentName: { fontSize: 14, fontWeight: '600', color: COLORS.textPrimary },
-    recentMeta: { fontSize: 12, color: COLORS.textTertiary, marginTop: 1 },
+    recentName: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+    recentMeta: { fontSize: 12, color: colors.textTertiary, marginTop: 1 },
     statusPill: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
     statusText: { fontSize: 11, fontWeight: '600', textTransform: 'capitalize' },
     noData: { alignItems: 'center', paddingVertical: SPACING.xxl },
-    noDataText: { fontSize: 14, color: COLORS.textTertiary },
+    noDataText: { fontSize: 14, color: colors.textTertiary },
 });

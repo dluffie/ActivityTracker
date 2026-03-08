@@ -4,6 +4,7 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import OtpVerification from '../models/Otp.js';
+import PasswordResetOtp from '../models/PasswordResetOtp.js';
 import Brevo from '@getbrevo/brevo';
 
 const router = express.Router();
@@ -49,6 +50,13 @@ const getOtpEmailHtml = (otp) => `
             border-radius: 12px;
             text-align: center;
         ">
+            <img src="https://activitytracker-q7vf.onrender.com//logo.webp" alt="CAPMS" style="
+                width: 80px;
+                height: 80px;
+                border-radius: 16px;
+                margin-bottom: 16px;
+                object-fit: contain;
+            " />
             <h2 style="color: #333; margin-bottom: 10px;">Verify Your Email</h2>
             <p style="color: #666; margin-bottom: 30px;">
                 Use the following code to complete your registration:
@@ -70,9 +78,90 @@ const getOtpEmailHtml = (otp) => `
             <p style="margin-top: 30px; font-size: 14px; color: #888;">
                 This code will expire in <strong>10 minutes</strong>.
             </p>
-            <p style="font-size: 12px; color: #aaa; margin-top: 20px;">
+            <div style="
+                margin-top: 16px;
+                padding: 10px;
+                background: #fef2f2;
+                border-radius: 8px;
+                border: 1px solid #fecaca;
+            ">
+                
+            </div>
+            <p style="font-size: 11px; color: #aaa; margin-top: 20px;">
                 If you didn't request this, please ignore this email.
             </p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0 12px;" />
+            <p style="font-size: 11px; color: #bbb; margin: 0;">CAPMS — Activity Point Tracker</p>
+        </div>
+    </div>
+`;
+
+// Password reset email template
+const getResetOtpEmailHtml = (otp) => `
+    <div style="
+        font-family: 'Segoe UI', Arial, sans-serif;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 30px;
+        background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        border-radius: 16px;
+    ">
+        <div style="
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+        ">
+            <img src="https://capms.onrender.com/logo.png" alt="CAPMS" style="
+                width: 80px;
+                height: 80px;
+                border-radius: 16px;
+                margin-bottom: 16px;
+                object-fit: contain;
+            " />
+            <h2 style="color: #333; margin-bottom: 10px;">Reset Your Password</h2>
+            <p style="color: #666; margin-bottom: 30px;">
+                Use the following code to reset your password:
+            </p>
+            
+            <div style="
+                display: inline-block;
+                padding: 20px 40px;
+                background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+                border-radius: 12px;
+                font-size: 32px;
+                font-weight: bold;
+                letter-spacing: 8px;
+                color: white;
+            ">
+                ${otp}
+            </div>
+
+            <p style="margin-top: 30px; font-size: 14px; color: #888;">
+                This code will expire in <strong>10 minutes</strong>.
+            </p>
+            <div style="
+                margin-top: 16px;
+                padding: 10px;
+                background: #fef2f2;
+                border-radius: 8px;
+                border: 1px solid #fecaca;
+            ">
+                
+            </div>
+            <div style="
+                margin-top: 12px;
+                padding: 10px;
+                background: #fff7ed;
+                border-radius: 8px;
+                border: 1px solid #fed7aa;
+            ">
+                <p style="font-size: 12px; color: #c2410c; margin: 0;">
+                    ⚠️ If you didn't request this, ignore this email. Your password won't change.
+                </p>
+            </div>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0 12px;" />
+            <p style="font-size: 11px; color: #bbb; margin: 0;">CAPMS — Activity Point Tracker</p>
         </div>
     </div>
 `;
@@ -326,6 +415,146 @@ router.post("/login", async (req, res) => {
 
     } catch (error) {
         console.error("Error during login:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
+// ==================== PASSWORD RESET ====================
+
+// POST /api/auth/forgot-password - Send password reset OTP
+router.post("/forgot-password", async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+
+        // Always return success to prevent email enumeration
+        const successMsg = "If an account with that email exists, we've sent a password reset OTP.";
+
+        // Check if user exists
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(200).json({ message: successMsg });
+        }
+
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const hashedOtp = await bcrypt.hash(otp, 10);
+
+        // Upsert so repeated requests just update the OTP
+        await PasswordResetOtp.findOneAndUpdate(
+            { email },
+            {
+                email,
+                otp: hashedOtp,
+                expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+            },
+            { upsert: true }
+        );
+
+        // Send reset OTP email
+        await sendEmail(
+            email,
+            "Password Reset OTP - Activity Tracker",
+            getResetOtpEmailHtml(otp)
+        );
+
+        console.log(`Password reset OTP sent to ${email}: ${otp}`);
+
+        return res.status(200).json({ message: successMsg });
+
+    } catch (error) {
+        console.error("Error in forgot-password:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
+// POST /api/auth/verify-reset-otp - Verify reset OTP and get reset token
+router.post("/verify-reset-otp", async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.status(400).json({ message: "Email and OTP are required" });
+        }
+
+        const otpRecord = await PasswordResetOtp.findOne({ email });
+        if (!otpRecord) {
+            return res.status(400).json({ message: "No reset request found. Please request a new OTP." });
+        }
+
+        if (otpRecord.expiresAt < new Date()) {
+            await PasswordResetOtp.deleteOne({ email });
+            return res.status(400).json({ message: "OTP expired. Please request a new one." });
+        }
+
+        const isMatch = await bcrypt.compare(otp, otpRecord.otp);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid OTP. Please try again." });
+        }
+
+        // OTP valid — issue a short-lived reset token (15 min)
+        const resetToken = jwt.sign(
+            { email, purpose: 'password-reset' },
+            process.env.JWT_SECRET,
+            { expiresIn: '15m' }
+        );
+
+        // Delete OTP record (single use)
+        await PasswordResetOtp.deleteOne({ email });
+
+        return res.status(200).json({
+            message: "OTP verified. You can now reset your password.",
+            resetToken,
+        });
+
+    } catch (error) {
+        console.error("Error in verify-reset-otp:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
+// POST /api/auth/reset-password - Reset password with token
+router.post("/reset-password", async (req, res) => {
+    try {
+        const { resetToken, newPassword } = req.body;
+
+        if (!resetToken || !newPassword) {
+            return res.status(400).json({ message: "Reset token and new password are required" });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters" });
+        }
+
+        // Verify reset token
+        let decoded;
+        try {
+            decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+        } catch {
+            return res.status(400).json({ message: "Reset link expired or invalid. Please request a new OTP." });
+        }
+
+        if (decoded.purpose !== 'password-reset') {
+            return res.status(400).json({ message: "Invalid reset token" });
+        }
+
+        // Find user and update password
+        const user = await User.findOne({ email: decoded.email });
+        if (!user) {
+            return res.status(400).json({ message: "User not found" });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        return res.status(200).json({ message: "Password reset successfully! You can now log in." });
+
+    } catch (error) {
+        console.error("Error in reset-password:", error);
         return res.status(500).json({ message: "Server error", error: error.message });
     }
 });

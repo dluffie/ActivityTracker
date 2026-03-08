@@ -16,7 +16,9 @@ import {
     Upload,
     ArrowRight,
     Zap,
-    Sun
+    Sun,
+    Hammer,
+    PartyPopper
 } from 'lucide-react';
 import {
     PieChart,
@@ -30,10 +32,11 @@ import './StudentDashboard.css';
 
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#14b8a6', '#8b5cf6'];
 const CYBER_COLORS = ['#00f0ff', '#39ff14', '#ffee00', '#ff2d95', '#ff00ff', '#00ff88'];
+const BRUTAL_COLORS = ['#FF6B00', '#0A0A0A', '#FFD600', '#D32F2F', '#2E7D32', '#555555'];
 
 const StudentDashboard = () => {
     const { user } = useAuth();
-    const { theme, setTheme, isCyberpunk } = useTheme();
+    const { theme, setTheme, isCyberpunk, isBrutalist } = useTheme();
     const { playClick, playHover } = useClickSound();
     const dashboardRef = useRef(null);
     const statsRef = useRef(null);
@@ -57,34 +60,35 @@ const StudentDashboard = () => {
             // Staggered card entrance
             anime({
                 targets: '.sd-stat-card',
-                translateY: [40, 0],
+                translateY: isBrutalist ? [0, 0] : [40, 0],
+                translateX: isBrutalist ? [-20, 0] : [0, 0],
                 opacity: [0, 1],
-                duration: 600,
-                delay: anime.stagger(120, { start: 200 }),
-                easing: 'easeOutCubic'
+                duration: isBrutalist ? 400 : 600,
+                delay: anime.stagger(isBrutalist ? 80 : 120, { start: 200 }),
+                easing: isBrutalist ? 'easeOutQuad' : 'easeOutCubic'
             });
 
             // Dashboard content fade in
             anime({
                 targets: '.sd-content-section',
-                translateY: [30, 0],
+                translateY: isBrutalist ? [0, 0] : [30, 0],
                 opacity: [0, 1],
-                duration: 500,
+                duration: isBrutalist ? 300 : 500,
                 delay: anime.stagger(150, { start: 700 }),
-                easing: 'easeOutCubic'
+                easing: isBrutalist ? 'easeOutQuad' : 'easeOutCubic'
             });
 
             // Tips card
             anime({
                 targets: '.sd-tips',
-                translateY: [20, 0],
+                translateY: isBrutalist ? [0, 0] : [20, 0],
                 opacity: [0, 1],
-                duration: 500,
+                duration: isBrutalist ? 300 : 500,
                 delay: 1100,
-                easing: 'easeOutCubic'
+                easing: isBrutalist ? 'easeOutQuad' : 'easeOutCubic'
             });
         }
-    }, [loading]);
+    }, [loading, isBrutalist]);
 
     // Animated counters
     useEffect(() => {
@@ -125,8 +129,6 @@ const StudentDashboard = () => {
         }
     }, [loading, stats]);
 
-    // fetchDashboardData moved to useDataCache above
-
     const getStatusCounts = () => {
         if (!stats?.byStatus) return { pending: 0, approved: 0, rejected: 0 };
         return stats.byStatus.reduce((acc, item) => {
@@ -150,14 +152,22 @@ const StudentDashboard = () => {
     const totalPoints = user?.totalPoints || getTotalApprovedPoints();
     const requiredPoints = user?.isLateral ? 40 : 60;
     const progressPercent = Math.min((totalPoints / requiredPoints) * 100, 100);
-    const chartColors = isCyberpunk ? CYBER_COLORS : COLORS;
+    const goalAchieved = totalPoints >= requiredPoints;
+    const chartColors = isCyberpunk ? CYBER_COLORS : isBrutalist ? BRUTAL_COLORS : COLORS;
+
+    // Helper for label text
+    const label = (normal, cyber, brutal) => {
+        if (isBrutalist) return brutal;
+        if (isCyberpunk) return cyber;
+        return normal;
+    };
 
     if (loading) {
-        return <Loading fullScreen text="Loading dashboard..." />;
+        return <Loading fullScreen text={isBrutalist ? "LOADING_SYSTEMS..." : "Loading dashboard..."} />;
     }
 
     return (
-        <div className={`student-dashboard ${isCyberpunk ? 'cyber-mode' : ''}`} ref={dashboardRef}>
+        <div className={`student-dashboard ${isCyberpunk ? 'cyber-mode' : ''} ${isBrutalist ? 'brutalist-mode' : ''}`} ref={dashboardRef}>
             {/* Cyberpunk background effects */}
             {isCyberpunk && (
                 <div className="sd-cyber-bg">
@@ -166,18 +176,38 @@ const StudentDashboard = () => {
                 </div>
             )}
 
+            {/* Brutalist blueprint background */}
+            {isBrutalist && (
+                <div className="sd-brutalist-bg">
+                    <div className="sd-blueprint-grid" />
+                    <div className="sd-crosshair sd-crosshair-tl" />
+                    <div className="sd-crosshair sd-crosshair-tr" />
+                    <div className="sd-crosshair sd-crosshair-bl" />
+                    <div className="sd-crosshair sd-crosshair-br" />
+                    <div className="sd-stamp">UNDER CONSTRUCTION</div>
+                </div>
+            )}
+
             <div className="sd-header">
                 <div className="sd-header-info">
                     <h1 className={isCyberpunk ? 'glitch-text neon-text' : ''}>
-                        {isCyberpunk ? `> ${user?.fullName?.split(' ')[0]}_` : `Welcome, ${user?.fullName?.split(' ')[0]}! 👋`}
+                        {label(
+                            `Welcome, ${user?.fullName?.split(' ')[0]}! 👋`,
+                            `> ${user?.fullName?.split(' ')[0]}_`,
+                            `SECTOR: ${user?.fullName?.split(' ')[0]?.toUpperCase()}`
+                        )}
                     </h1>
-                    <p>{isCyberpunk ? '// ACTIVITY_POINTS_OVERVIEW' : "Here's your activity points overview"}</p>
+                    <p>{label(
+                        "Here's your activity points overview",
+                        '// ACTIVITY_POINTS_OVERVIEW',
+                        '// ACTIVITY_LOG_STATUS — LIVE FEED'
+                    )}</p>
                 </div>
                 <div className="sd-header-actions">
                     {/* Theme Switcher */}
                     <div className="sd-theme-switcher">
                         <button
-                            className={`sd-theme-btn ${!isCyberpunk ? 'active' : ''}`}
+                            className={`sd-theme-btn ${!isCyberpunk && !isBrutalist ? 'active' : ''}`}
                             onClick={() => handleThemeSwitch(theme === 'light' ? 'light' : 'dark')}
                             title="Normal Mode"
                         >
@@ -192,46 +222,61 @@ const StudentDashboard = () => {
                             <Zap size={16} />
                             <span>Cyber</span>
                         </button>
+                        <button
+                            className={`sd-theme-btn sd-theme-btn-brutal ${isBrutalist ? 'active' : ''}`}
+                            onClick={() => handleThemeSwitch('brutalist')}
+                            title="Brutalist Mode"
+                        >
+                            <Hammer size={16} />
+                            <span>Raw</span>
+                        </button>
                     </div>
                     <Link
                         to="/student/upload"
-                        className={`btn ${isCyberpunk ? 'sd-cyber-btn' : 'btn-primary'}`}
+                        className={`btn ${isCyberpunk ? 'sd-cyber-btn' : isBrutalist ? 'sd-brutal-btn' : 'btn-primary'}`}
                         onClick={playClick}
                         onMouseEnter={playHover}
                     >
                         <Upload size={18} />
-                        Upload Activity
+                        {label('Upload Activity', 'Upload Activity', 'SUBMIT_NEW')}
                     </Link>
                 </div>
             </div>
 
             {/* Stats Cards */}
             <div className="sd-stats-grid">
-                <div className="sd-stat-card sd-stat-main" style={{ opacity: 0 }}>
-                    <div className={`sd-stat-icon ${isCyberpunk ? 'sd-icon-neon-cyan' : 'gradient-purple'}`}>
-                        <TrendingUp size={24} />
+                <div className={`sd-stat-card sd-stat-main ${goalAchieved ? 'sd-goal-achieved' : ''}`} style={{ opacity: 0 }}>
+                    <div className={`sd-stat-icon ${goalAchieved ? 'gradient-green' : isCyberpunk ? 'sd-icon-neon-cyan' : isBrutalist ? 'sd-icon-brutal-orange' : 'gradient-purple'}`}>
+                        {goalAchieved ? <CheckCircle size={24} /> : <TrendingUp size={24} />}
                     </div>
                     <div className="sd-stat-info">
                         <span className="sd-stat-value" ref={el => counterRefs.current[0] = el}>
                             {totalPoints}
                         </span>
                         <span className="sd-stat-label">
-                            {isCyberpunk ? 'XP_TOTAL' : 'Total Points'}
+                            {goalAchieved
+                                ? label('Goal Achieved! 🎉', 'TARGET_COMPLETE', 'OBJECTIVE_CLEARED')
+                                : label('Total Points', 'XP_TOTAL', 'TOTAL_XP')
+                            }
                         </span>
                     </div>
                     <div className="sd-progress-section">
-                        <div className="sd-progress-track">
+                        <div className={`sd-progress-track ${goalAchieved ? 'sd-progress-achieved' : ''}`}>
                             <div className="sd-progress-fill" style={{ width: 0 }} />
                         </div>
-                        <span className="sd-progress-label">
-                            {totalPoints} / {requiredPoints} {isCyberpunk ? 'XP_REQUIRED' : 'points required'}
+                        <span className={`sd-progress-label ${goalAchieved ? 'sd-achieved-label' : ''}`}>
+                            {goalAchieved ? (
+                                <><PartyPopper size={14} /> {totalPoints} / {requiredPoints} — {label('GOAL ACHIEVED!', 'TARGET_MET', 'CLEARED!')}</>
+                            ) : (
+                                <>{totalPoints} / {requiredPoints} {label('points required', 'XP_REQUIRED', 'UNITS_REQUIRED')}</>
+                            )}
                         </span>
                     </div>
                 </div>
 
                 <div className="sd-stat-card" style={{ opacity: 0 }}
                     onMouseEnter={playHover} onClick={playClick}>
-                    <div className={`sd-stat-icon ${isCyberpunk ? 'sd-icon-neon-yellow' : 'gradient-yellow'}`}>
+                    <div className={`sd-stat-icon ${isCyberpunk ? 'sd-icon-neon-yellow' : isBrutalist ? 'sd-icon-brutal-yellow' : 'gradient-yellow'}`}>
                         <Clock size={24} />
                     </div>
                     <div className="sd-stat-info">
@@ -239,14 +284,14 @@ const StudentDashboard = () => {
                             {statusCounts.pending}
                         </span>
                         <span className="sd-stat-label">
-                            {isCyberpunk ? 'QUEUE' : 'Pending'}
+                            {label('Pending', 'QUEUE', 'QUEUE')}
                         </span>
                     </div>
                 </div>
 
                 <div className="sd-stat-card" style={{ opacity: 0 }}
                     onMouseEnter={playHover} onClick={playClick}>
-                    <div className={`sd-stat-icon ${isCyberpunk ? 'sd-icon-neon-green' : 'gradient-green'}`}>
+                    <div className={`sd-stat-icon ${isCyberpunk ? 'sd-icon-neon-green' : isBrutalist ? 'sd-icon-brutal-green' : 'gradient-green'}`}>
                         <CheckCircle size={24} />
                     </div>
                     <div className="sd-stat-info">
@@ -254,14 +299,14 @@ const StudentDashboard = () => {
                             {statusCounts.approved}
                         </span>
                         <span className="sd-stat-label">
-                            {isCyberpunk ? 'VERIFIED' : 'Approved'}
+                            {label('Approved', 'VERIFIED', 'CLEARED')}
                         </span>
                     </div>
                 </div>
 
                 <div className="sd-stat-card" style={{ opacity: 0 }}
                     onMouseEnter={playHover} onClick={playClick}>
-                    <div className={`sd-stat-icon ${isCyberpunk ? 'sd-icon-neon-red' : 'gradient-red'}`}>
+                    <div className={`sd-stat-icon ${isCyberpunk ? 'sd-icon-neon-red' : isBrutalist ? 'sd-icon-brutal-red' : 'gradient-red'}`}>
                         <XCircle size={24} />
                     </div>
                     <div className="sd-stat-info">
@@ -269,7 +314,7 @@ const StudentDashboard = () => {
                             {statusCounts.rejected}
                         </span>
                         <span className="sd-stat-label">
-                            {isCyberpunk ? 'DENIED' : 'Rejected'}
+                            {label('Rejected', 'DENIED', 'DENIED')}
                         </span>
                     </div>
                 </div>
@@ -279,8 +324,8 @@ const StudentDashboard = () => {
             <div className="sd-content">
                 {/* Points by Category */}
                 <div className="sd-content-section" style={{ opacity: 0 }}>
-                    <Card title={isCyberpunk ? '// DATA_ANALYSIS' : 'Points by Category'}
-                        className={`sd-chart-card ${isCyberpunk ? 'cyber-card' : ''}`}>
+                    <Card title={label('Points by Category', '// DATA_ANALYSIS', '// SECTOR_BREAKDOWN')}
+                        className={`sd-chart-card ${isCyberpunk ? 'cyber-card' : ''} ${isBrutalist ? 'brutal-card' : ''}`}>
                         {stats?.byType?.length > 0 ? (
                             <ResponsiveContainer width="100%" height={250}>
                                 <PieChart>
@@ -292,6 +337,8 @@ const StudentDashboard = () => {
                                         cy="50%"
                                         outerRadius={80}
                                         label={({ _id, points }) => `${_id}: ${points}`}
+                                        stroke={isBrutalist ? '#0A0A0A' : undefined}
+                                        strokeWidth={isBrutalist ? 2 : 1}
                                     >
                                         {stats.byType.map((entry, index) => (
                                             <Cell
@@ -302,10 +349,12 @@ const StudentDashboard = () => {
                                     </Pie>
                                     <Tooltip
                                         contentStyle={{
-                                            background: isCyberpunk ? '#0d0d1f' : 'var(--bg-card)',
-                                            border: isCyberpunk ? '1px solid #00f0ff' : '1px solid var(--border-color)',
-                                            borderRadius: '8px',
-                                            color: isCyberpunk ? '#e0f0ff' : 'var(--text-primary)'
+                                            background: isCyberpunk ? '#0d0d1f' : isBrutalist ? '#F5F0E8' : 'var(--bg-card)',
+                                            border: isCyberpunk ? '1px solid #00f0ff' : isBrutalist ? '3px solid #0A0A0A' : '1px solid var(--border-color)',
+                                            borderRadius: isBrutalist ? '0' : '8px',
+                                            color: isCyberpunk ? '#e0f0ff' : isBrutalist ? '#0A0A0A' : 'var(--text-primary)',
+                                            fontFamily: isBrutalist ? "'IBM Plex Mono', monospace" : undefined,
+                                            boxShadow: isBrutalist ? '3px 3px 0 #0A0A0A' : undefined
                                         }}
                                     />
                                 </PieChart>
@@ -313,7 +362,7 @@ const StudentDashboard = () => {
                         ) : (
                             <div className="sd-empty">
                                 <FileText size={48} className="text-tertiary" />
-                                <p>{isCyberpunk ? 'NO_DATA_FOUND' : 'No activities yet'}</p>
+                                <p>{label('No activities yet', 'NO_DATA_FOUND', 'NO_DATA_AVAILABLE')}</p>
                             </div>
                         )}
                     </Card>
@@ -322,15 +371,15 @@ const StudentDashboard = () => {
                 {/* Recent Activities */}
                 <div className="sd-content-section" style={{ opacity: 0 }}>
                     <Card
-                        title={isCyberpunk ? '// RECENT_LOG' : 'Recent Activities'}
+                        title={label('Recent Activities', '// RECENT_LOG', '// RECENT_ENTRIES')}
                         action={
                             <Link to="/student/activities"
                                 className="btn btn-ghost btn-sm"
                                 onClick={playClick} onMouseEnter={playHover}>
-                                View All <ArrowRight size={16} />
+                                {label('View All', 'View All', 'VIEW_ALL')} <ArrowRight size={16} />
                             </Link>
                         }
-                        className={`sd-recent-card ${isCyberpunk ? 'cyber-card' : ''}`}
+                        className={`sd-recent-card ${isCyberpunk ? 'cyber-card' : ''} ${isBrutalist ? 'brutal-card' : ''}`}
                     >
                         {recentActivities.length > 0 ? (
                             <div className="sd-recent-list">
@@ -354,7 +403,7 @@ const StudentDashboard = () => {
                                                     activity.status === 'correction_needed' ? 'warning' :
                                                         'info'
                                                 }`}>
-                                                {isCyberpunk ? activity.status.toUpperCase() : activity.status}
+                                                {isCyberpunk || isBrutalist ? activity.status.toUpperCase() : activity.status}
                                             </span>
                                             {activity.status === 'approved' && (
                                                 <span className="sd-points">+{activity.pointsAssigned} pts</span>
@@ -366,11 +415,11 @@ const StudentDashboard = () => {
                         ) : (
                             <div className="sd-empty">
                                 <FileText size={48} className="text-tertiary" />
-                                <p>{isCyberpunk ? 'NO_ENTRIES' : 'No activities uploaded yet'}</p>
+                                <p>{label('No activities uploaded yet', 'NO_ENTRIES', 'NO_ENTRIES_LOGGED')}</p>
                                 <Link to="/student/upload"
-                                    className={`btn ${isCyberpunk ? 'sd-cyber-btn' : 'btn-primary'} btn-sm`}
+                                    className={`btn ${isCyberpunk ? 'sd-cyber-btn' : isBrutalist ? 'sd-brutal-btn' : 'btn-primary'} btn-sm`}
                                     onClick={playClick}>
-                                    Upload Your First Activity
+                                    {label('Upload Your First Activity', 'Upload Your First Activity', 'SUBMIT_FIRST_ENTRY')}
                                 </Link>
                             </div>
                         )}
@@ -380,12 +429,12 @@ const StudentDashboard = () => {
 
             {/* Quick Tips */}
             <div className="sd-tips" style={{ opacity: 0 }}>
-                <Card className={`sd-tips-card ${isCyberpunk ? 'cyber-card' : ''}`} hover={false}>
-                    <h3>{isCyberpunk ? '> SYS_TIPS' : '💡 Quick Tips'}</h3>
+                <Card className={`sd-tips-card ${isCyberpunk ? 'cyber-card' : ''} ${isBrutalist ? 'brutal-card' : ''}`} hover={false}>
+                    <h3>{label('💡 Quick Tips', '> SYS_TIPS', '■ OPERATIONAL_NOTES')}</h3>
                     <ul>
-                        <li>{isCyberpunk ? '> ' : ''}Upload clear, readable certificates for faster verification</li>
-                        <li>{isCyberpunk ? '> ' : ''}You need {requiredPoints} points total to graduate — you have {totalPoints}</li>
-                        <li>{isCyberpunk ? '> ' : ''}Points from different categories all count towards your total</li>
+                        <li>{label('', '> ', '→ ')}Upload clear, readable certificates for faster verification</li>
+                        <li>{label('', '> ', '→ ')}You need {requiredPoints} points total to graduate — you have {totalPoints}</li>
+                        <li>{label('', '> ', '→ ')}Points from different categories all count towards your total</li>
                     </ul>
                 </Card>
             </div>

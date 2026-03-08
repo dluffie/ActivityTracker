@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { teacherAPI, notificationAPI } from '../../api';
 import { Card, Loading } from '../../components/ui';
 import useDataCache from '../../hooks/useDataCache';
@@ -24,6 +25,7 @@ import './TeacherDashboard.css';
 
 const TeacherDashboard = () => {
     const { user } = useAuth();
+    const { isBrutalist } = useTheme();
     const [needsSubscription, setNeedsSubscription] = useState(false);
     const [subscriptionChecked, setSubscriptionChecked] = useState(false);
 
@@ -67,21 +69,24 @@ const TeacherDashboard = () => {
     const recentActivities = dashData?.recentActivities || [];
     const notifications = dashData?.notifications || [];
 
+    // Helper for label text
+    const label = (normal, brutal) => isBrutalist ? brutal : normal;
+
     if (loading) {
-        return <Loading fullScreen text="Loading dashboard..." />;
+        return <Loading fullScreen text={isBrutalist ? "LOADING_SYSTEMS..." : "Loading dashboard..."} />;
     }
 
     if (needsSubscription) {
         return (
-            <div className="td-subscription-prompt">
+            <div className={`td-subscription-prompt ${isBrutalist ? 'brutalist-mode' : ''}`}>
                 <div className="td-prompt-card">
                     <div className="td-prompt-icon-wrap">
                         <AlertCircle size={48} />
                     </div>
-                    <h2>Subscribe to Classes</h2>
-                    <p>You need to subscribe to classes to start receiving student activities for verification.</p>
-                    <Link to="/teacher/classes" className="btn btn-primary btn-lg">
-                        Subscribe to Classes
+                    <h2>{label('Subscribe to Classes', 'SUBSCRIBE_TO_CLASSES')}</h2>
+                    <p>{label('You need to subscribe to classes to start receiving student activities for verification.', '→ SUBSCRIPTION_REQUIRED: SUBSCRIBE TO RECEIVE STUDENT ACTIVITY FEED.')}</p>
+                    <Link to="/teacher/classes" className={`btn ${isBrutalist ? 'td-brutal-btn' : 'btn-primary'} btn-lg`}>
+                        {label('Subscribe to Classes', 'SUBSCRIBE')}
                     </Link>
                 </div>
             </div>
@@ -91,16 +96,34 @@ const TeacherDashboard = () => {
     const pending = stats?.pendingActivities || 0;
 
     return (
-        <div className="teacher-dashboard">
+        <div className={`teacher-dashboard ${isBrutalist ? 'brutalist-mode' : ''}`}>
+            {/* Brutalist blueprint background */}
+            {isBrutalist && (
+                <div className="td-brutalist-bg">
+                    <div className="td-blueprint-grid" />
+                    <div className="td-crosshair td-crosshair-tl" />
+                    <div className="td-crosshair td-crosshair-tr" />
+                    <div className="td-crosshair td-crosshair-bl" />
+                    <div className="td-crosshair td-crosshair-br" />
+                    <div className="td-stamp">CONTROL ROOM</div>
+                </div>
+            )}
+
             {/* Header */}
             <div className="td-header">
                 <div className="td-header-info">
-                    <h1>Welcome back, {user?.fullName?.split(' ')[0]}! 👋</h1>
-                    <p>Here's your overview of student activities</p>
+                    <h1>{label(
+                        `Welcome back, ${user?.fullName?.split(' ')[0]}! 👋`,
+                        `CONTROL_ROOM: ${user?.fullName?.split(' ')[0]?.toUpperCase()}`
+                    )}</h1>
+                    <p>{label(
+                        "Here's your overview of student activities",
+                        '// STUDENT_OVERSIGHT_PANEL — LIVE'
+                    )}</p>
                 </div>
-                <Link to="/teacher/verification" className="btn btn-primary">
+                <Link to="/teacher/verification" className={`btn ${isBrutalist ? 'td-brutal-btn' : 'btn-primary'}`}>
                     <CheckSquare size={18} />
-                    Review Activities
+                    {label('Review Activities', 'REVIEW')}
                     {pending > 0 && <span className="td-badge-count">{pending}</span>}
                 </Link>
             </div>
@@ -113,9 +136,9 @@ const TeacherDashboard = () => {
                     </div>
                     <div className="td-stat-body">
                         <span className="td-stat-value">{stats?.totalStudents || 0}</span>
-                        <span className="td-stat-label">Total Students</span>
+                        <span className="td-stat-label">{label('Total Students', 'PERSONNEL')}</span>
                     </div>
-                    <div className="td-stat-decoration" />
+                    {!isBrutalist && <div className="td-stat-decoration" />}
                 </div>
 
                 <div className={`td-stat-card td-stat-amber ${pending > 0 ? 'td-stat-pulse' : ''}`}>
@@ -124,9 +147,9 @@ const TeacherDashboard = () => {
                     </div>
                     <div className="td-stat-body">
                         <span className="td-stat-value">{pending}</span>
-                        <span className="td-stat-label">Pending Review</span>
+                        <span className="td-stat-label">{label('Pending Review', 'QUEUE')}</span>
                     </div>
-                    <div className="td-stat-decoration" />
+                    {!isBrutalist && <div className="td-stat-decoration" />}
                 </div>
 
                 <div className="td-stat-card td-stat-emerald">
@@ -135,9 +158,9 @@ const TeacherDashboard = () => {
                     </div>
                     <div className="td-stat-body">
                         <span className="td-stat-value">{stats?.approvedActivities || 0}</span>
-                        <span className="td-stat-label">Approved</span>
+                        <span className="td-stat-label">{label('Approved', 'CLEARED')}</span>
                     </div>
-                    <div className="td-stat-decoration" />
+                    {!isBrutalist && <div className="td-stat-decoration" />}
                 </div>
 
                 <div className="td-stat-card td-stat-rose">
@@ -146,21 +169,21 @@ const TeacherDashboard = () => {
                     </div>
                     <div className="td-stat-body">
                         <span className="td-stat-value">{stats?.rejectedActivities || 0}</span>
-                        <span className="td-stat-label">Rejected</span>
+                        <span className="td-stat-label">{label('Rejected', 'DENIED')}</span>
                     </div>
-                    <div className="td-stat-decoration" />
+                    {!isBrutalist && <div className="td-stat-decoration" />}
                 </div>
             </div>
 
             {/* Recent Activities */}
             <Card
-                title="Recent Submissions"
+                title={label('Recent Submissions', '// RECENT_ENTRIES')}
                 action={
                     <Link to="/teacher/verification" className="btn btn-ghost btn-sm">
-                        View All <ArrowRight size={16} />
+                        {label('View All', 'VIEW_ALL')} <ArrowRight size={16} />
                     </Link>
                 }
-                className="td-recent-card"
+                className={`td-recent-card ${isBrutalist ? 'brutal-card' : ''}`}
             >
                 {recentActivities.length > 0 ? (
                     <div className="td-recent-list">
@@ -183,7 +206,7 @@ const TeacherDashboard = () => {
                                         activity.status === 'rejected' ? 'error' :
                                             'warning'
                                         }`}>
-                                        {activity.status}
+                                        {isBrutalist ? activity.status.toUpperCase() : activity.status}
                                     </span>
                                 </div>
                             </div>
@@ -192,7 +215,7 @@ const TeacherDashboard = () => {
                 ) : (
                     <div className="td-empty-state">
                         <Clock size={48} className="text-tertiary" />
-                        <p>No recent submissions</p>
+                        <p>{label('No recent submissions', 'NO_ENTRIES_LOGGED')}</p>
                     </div>
                 )}
             </Card>
@@ -203,8 +226,8 @@ const TeacherDashboard = () => {
                     <div className="td-action-icon td-action-purple">
                         <ClipboardCheck size={28} />
                     </div>
-                    <h4>Verify Activities</h4>
-                    <p>Review pending student submissions</p>
+                    <h4>{label('Verify Activities', 'VERIFY_ACTIVITIES')}</h4>
+                    <p>{label('Review pending student submissions', 'REVIEW PENDING SUBMISSIONS')}</p>
                     <span className="td-action-arrow"><ArrowRight size={18} /></span>
                 </Link>
 
@@ -212,8 +235,8 @@ const TeacherDashboard = () => {
                     <div className="td-action-icon td-action-blue">
                         <UserPlus size={28} />
                     </div>
-                    <h4>Submit for Student</h4>
-                    <p>Add activity on behalf of a student</p>
+                    <h4>{label('Submit for Student', 'SUBMIT_FOR_STUDENT')}</h4>
+                    <p>{label('Add activity on behalf of a student', 'ADD ACTIVITY ON BEHALF')}</p>
                     <span className="td-action-arrow"><ArrowRight size={18} /></span>
                 </Link>
 
@@ -221,8 +244,8 @@ const TeacherDashboard = () => {
                     <div className="td-action-icon td-action-teal">
                         <Send size={28} />
                     </div>
-                    <h4>Send Reminders</h4>
-                    <p>Notify students about deadlines</p>
+                    <h4>{label('Send Reminders', 'SEND_REMINDERS')}</h4>
+                    <p>{label('Notify students about deadlines', 'NOTIFY STUDENTS')}</p>
                     <span className="td-action-arrow"><ArrowRight size={18} /></span>
                 </Link>
             </div>
@@ -230,8 +253,8 @@ const TeacherDashboard = () => {
             {/* Recent Notifications */}
             {notifications.length > 0 && (
                 <Card
-                    title="Recent Notifications"
-                    className="td-notif-card"
+                    title={label('Recent Notifications', '// NOTIFICATIONS')}
+                    className={`td-notif-card ${isBrutalist ? 'brutal-card' : ''}`}
                 >
                     <div className="td-notif-list">
                         {notifications.map((notif) => {

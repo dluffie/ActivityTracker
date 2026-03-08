@@ -485,4 +485,54 @@ router.post("/reject-verification/:studentId", protectRoute, isTeacherOrAdmin, a
     }
 });
 
+// GET /api/teacher/student-detail/:studentId - Get detailed student info with activities
+router.get("/student-detail/:studentId", protectRoute, isTeacherOrAdmin, async (req, res) => {
+    try {
+        const { studentId } = req.params;
+
+        const student = await User.findById(studentId)
+            .select("fullName email registrationNumber branch semester section totalPoints isLateral profileVerified profileVerifiedAt createdAt");
+
+        if (!student) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+
+        if (student.role && student.role !== "student") {
+            return res.status(400).json({ message: "User is not a student" });
+        }
+
+        // Get all activities for this student
+        const activities = await Activity.find({ student: studentId })
+            .sort({ createdAt: -1 })
+            .select("activityType eventName level position status pointsSuggested pointsAssigned startDate endDate teacherComments createdAt");
+
+        // Aggregate stats
+        const stats = {
+            total: activities.length,
+            pending: activities.filter(a => a.status === "pending").length,
+            approved: activities.filter(a => a.status === "approved").length,
+            rejected: activities.filter(a => a.status === "rejected").length,
+            correction: activities.filter(a => a.status === "correction_needed").length,
+            totalPointsEarned: activities
+                .filter(a => a.status === "approved")
+                .reduce((sum, a) => sum + (a.pointsAssigned || 0), 0),
+            requiredPoints: student.isLateral ? 40 : 60,
+        };
+
+        // Points breakdown by activity type
+        const pointsByType = {};
+        activities.filter(a => a.status === "approved").forEach(a => {
+            const type = a.activityType || "other";
+            pointsByType[type] = (pointsByType[type] || 0) + (a.pointsAssigned || 0);
+        });
+        stats.pointsByType = pointsByType;
+
+        return res.status(200).json({ student, activities, stats });
+
+    } catch (error) {
+        console.error("Error fetching student detail:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
 export default router;

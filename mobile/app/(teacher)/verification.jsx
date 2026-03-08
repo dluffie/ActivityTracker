@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
     RefreshControl, ActivityIndicator, Modal, ScrollView, TextInput, Image,
@@ -6,10 +6,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { useTheme } from '../../src/context/ThemeContext';
 import { teacherAPI } from '../../src/api';
-import { COLORS, SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
+import { SPACING, RADIUS, SHADOWS } from '../../src/constants/theme';
 
 export default function VerificationScreen() {
+    const { colors } = useTheme();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [activities, setActivities] = useState([]);
@@ -18,6 +20,8 @@ export default function VerificationScreen() {
     const [actionLoading, setActionLoading] = useState(false);
     const [comments, setComments] = useState('');
     const [points, setPoints] = useState('');
+
+    const styles = useMemo(() => getStyles(colors), [colors]);
 
     useEffect(() => { fetchActivities(); }, []);
 
@@ -78,7 +82,7 @@ export default function VerificationScreen() {
                 <Text style={styles.cardStudent}>{item.student?.fullName}</Text>
                 <Text style={styles.cardMeta}>{item.activityType} • {item.level}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.textTertiary} />
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
         </TouchableOpacity>
     );
 
@@ -92,17 +96,17 @@ export default function VerificationScreen() {
             </View>
 
             {loading ? (
-                <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
+                <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View>
             ) : (
                 <FlatList
                     data={activities}
                     keyExtractor={item => item._id}
                     renderItem={renderItem}
                     contentContainerStyle={{ padding: SPACING.xl, paddingTop: SPACING.sm }}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchActivities(); }} colors={[COLORS.primary]} />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchActivities(); }} colors={[colors.primary]} />}
                     ListEmptyComponent={
                         <View style={styles.empty}>
-                            <Ionicons name="checkmark-done-circle-outline" size={64} color={COLORS.textTertiary} />
+                            <Ionicons name="checkmark-done-circle-outline" size={64} color={colors.textTertiary} />
                             <Text style={styles.emptyTitle}>All caught up!</Text>
                             <Text style={styles.emptyText}>No pending activities to review</Text>
                         </View>
@@ -110,14 +114,13 @@ export default function VerificationScreen() {
                 />
             )}
 
-            {/* Review Modal */}
             <Modal visible={modalVisible} animationType="slide" transparent>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>Review Activity</Text>
                             <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <Ionicons name="close" size={24} color={COLORS.textSecondary} />
+                                <Ionicons name="close" size={24} color={colors.textSecondary} />
                             </TouchableOpacity>
                         </View>
                         {selected && (
@@ -138,43 +141,28 @@ export default function VerificationScreen() {
                                     <Image source={{ uri: selected.documentUrl }} style={styles.docImage} resizeMode="contain" />
                                 )}
 
-                                {/* Points input */}
                                 <View style={styles.inputGroup}>
                                     <Text style={styles.inputLabel}>Points to Assign</Text>
-                                    <TextInput style={styles.input} value={points} onChangeText={setPoints} keyboardType="numeric" placeholder="e.g. 10" placeholderTextColor={COLORS.textTertiary} />
+                                    <TextInput style={styles.input} value={points} onChangeText={setPoints} keyboardType="numeric" placeholder="e.g. 10" placeholderTextColor={colors.textTertiary} />
                                 </View>
 
-                                {/* Comments input */}
                                 <View style={styles.inputGroup}>
                                     <Text style={styles.inputLabel}>Comments</Text>
-                                    <TextInput style={[styles.input, styles.textArea]} value={comments} onChangeText={setComments} placeholder="Optional comments..." placeholderTextColor={COLORS.textTertiary} multiline numberOfLines={3} textAlignVertical="top" />
+                                    <TextInput style={[styles.input, styles.textArea]} value={comments} onChangeText={setComments} placeholder="Optional comments..." placeholderTextColor={colors.textTertiary} multiline numberOfLines={3} textAlignVertical="top" />
                                 </View>
 
-                                {/* Action Buttons */}
                                 <View style={styles.actionRow}>
-                                    <TouchableOpacity
-                                        style={[styles.actionBtn, styles.approveBtn]}
-                                        onPress={() => handleAction('approved')}
-                                        disabled={actionLoading}
-                                    >
-                                        {actionLoading ? <ActivityIndicator size="small" color={COLORS.white} /> : (
-                                            <><Ionicons name="checkmark" size={18} color={COLORS.white} /><Text style={styles.approveBtnText}>Approve</Text></>
+                                    <TouchableOpacity style={[styles.actionBtn, styles.approveBtn]} onPress={() => handleAction('approved')} disabled={actionLoading}>
+                                        {actionLoading ? <ActivityIndicator size="small" color={colors.textInverse} /> : (
+                                            <><Ionicons name="checkmark" size={18} color={colors.textInverse} /><Text style={styles.approveBtnText}>Approve</Text></>
                                         )}
                                     </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={[styles.actionBtn, styles.correctBtn]}
-                                        onPress={() => handleAction('correction_needed')}
-                                        disabled={actionLoading}
-                                    >
-                                        <Ionicons name="alert" size={18} color={COLORS.warning} />
+                                    <TouchableOpacity style={[styles.actionBtn, styles.correctBtn]} onPress={() => handleAction('correction_needed')} disabled={actionLoading}>
+                                        <Ionicons name="alert" size={18} color={colors.warning} />
                                         <Text style={styles.correctBtnText}>Correction</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={[styles.actionBtn, styles.rejectBtn]}
-                                        onPress={() => handleAction('rejected')}
-                                        disabled={actionLoading}
-                                    >
-                                        <Ionicons name="close" size={18} color={COLORS.error} />
+                                    <TouchableOpacity style={[styles.actionBtn, styles.rejectBtn]} onPress={() => handleAction('rejected')} disabled={actionLoading}>
+                                        <Ionicons name="close" size={18} color={colors.error} />
                                         <Text style={styles.rejectBtnText}>Reject</Text>
                                     </TouchableOpacity>
                                 </View>
@@ -187,49 +175,49 @@ export default function VerificationScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background },
+const getStyles = (colors) => StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.xl, paddingTop: SPACING.lg, paddingBottom: SPACING.sm },
-    title: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary },
-    countBadge: { backgroundColor: COLORS.warningBg, paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs, borderRadius: RADIUS.full },
-    countText: { fontSize: 12, fontWeight: '600', color: COLORS.warning },
+    title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
+    countBadge: { backgroundColor: colors.warningBg, paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs, borderRadius: RADIUS.full },
+    countText: { fontSize: 12, fontWeight: '600', color: colors.warning },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     card: {
         flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
-        backgroundColor: COLORS.white, padding: SPACING.lg, borderRadius: RADIUS.lg,
+        backgroundColor: colors.card, padding: SPACING.lg, borderRadius: RADIUS.lg,
         marginBottom: SPACING.sm, ...SHADOWS.sm,
     },
     cardLeft: {},
-    cardAvatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: COLORS.primaryBg, alignItems: 'center', justifyContent: 'center' },
-    cardAvatarText: { fontSize: 16, fontWeight: '700', color: COLORS.primary },
+    cardAvatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.primaryBg, alignItems: 'center', justifyContent: 'center' },
+    cardAvatarText: { fontSize: 16, fontWeight: '700', color: colors.primary },
     cardBody: { flex: 1 },
-    cardTitle: { fontSize: 15, fontWeight: '600', color: COLORS.textPrimary },
-    cardStudent: { fontSize: 13, color: COLORS.textSecondary, marginTop: 1 },
-    cardMeta: { fontSize: 12, color: COLORS.textTertiary, marginTop: 2 },
+    cardTitle: { fontSize: 15, fontWeight: '600', color: colors.textPrimary },
+    cardStudent: { fontSize: 13, color: colors.textSecondary, marginTop: 1 },
+    cardMeta: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
     empty: { alignItems: 'center', paddingVertical: 80 },
-    emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginTop: SPACING.md },
-    emptyText: { fontSize: 14, color: COLORS.textTertiary, marginTop: SPACING.xs },
+    emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginTop: SPACING.md },
+    emptyText: { fontSize: 14, color: colors.textTertiary, marginTop: SPACING.xs },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-    modalContent: { backgroundColor: COLORS.white, borderTopLeftRadius: RADIUS.xxl, borderTopRightRadius: RADIUS.xxl, padding: SPACING.xl, maxHeight: '90%' },
+    modalContent: { backgroundColor: colors.card, borderTopLeftRadius: RADIUS.xxl, borderTopRightRadius: RADIUS.xxl, padding: SPACING.xl, maxHeight: '90%' },
     modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.lg },
-    modalTitle: { fontSize: 18, fontWeight: '600', color: COLORS.textPrimary },
-    modalEventName: { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary, marginBottom: SPACING.md },
+    modalTitle: { fontSize: 18, fontWeight: '600', color: colors.textPrimary },
+    modalEventName: { fontSize: 20, fontWeight: '700', color: colors.textPrimary, marginBottom: SPACING.md },
     detailGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.md, marginBottom: SPACING.lg },
     detailItem: { minWidth: '45%' },
-    detailLabel: { fontSize: 11, fontWeight: '600', color: COLORS.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 },
-    detailValue: { fontSize: 14, fontWeight: '500', color: COLORS.textPrimary, marginTop: 2 },
-    descText: { fontSize: 14, color: COLORS.textSecondary, lineHeight: 20, marginBottom: SPACING.md },
+    detailLabel: { fontSize: 11, fontWeight: '600', color: colors.textTertiary, textTransform: 'uppercase', letterSpacing: 0.5 },
+    detailValue: { fontSize: 14, fontWeight: '500', color: colors.textPrimary, marginTop: 2 },
+    descText: { fontSize: 14, color: colors.textSecondary, lineHeight: 20, marginBottom: SPACING.md },
     docImage: { width: '100%', height: 200, borderRadius: RADIUS.lg, marginBottom: SPACING.lg },
     inputGroup: { marginBottom: SPACING.md },
-    inputLabel: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginBottom: 4 },
-    input: { backgroundColor: COLORS.background, borderRadius: RADIUS.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md, borderWidth: 1, borderColor: COLORS.border, fontSize: 15, color: COLORS.textPrimary },
+    inputLabel: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginBottom: 4 },
+    input: { backgroundColor: colors.background, borderRadius: RADIUS.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md, borderWidth: 1, borderColor: colors.border, fontSize: 15, color: colors.textPrimary },
     textArea: { minHeight: 70, paddingTop: SPACING.md },
     actionRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.xxxl },
     actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: SPACING.md, borderRadius: RADIUS.md },
-    approveBtn: { backgroundColor: COLORS.success },
-    approveBtnText: { fontSize: 13, fontWeight: '600', color: COLORS.white },
-    correctBtn: { backgroundColor: COLORS.warningBg, borderWidth: 1, borderColor: '#fde68a' },
-    correctBtnText: { fontSize: 13, fontWeight: '600', color: COLORS.warning },
-    rejectBtn: { backgroundColor: COLORS.errorBg, borderWidth: 1, borderColor: '#fecaca' },
-    rejectBtnText: { fontSize: 13, fontWeight: '600', color: COLORS.error },
+    approveBtn: { backgroundColor: colors.success },
+    approveBtnText: { fontSize: 13, fontWeight: '600', color: colors.textInverse },
+    correctBtn: { backgroundColor: colors.warningBg, borderWidth: 1, borderColor: colors.warning + '40' },
+    correctBtnText: { fontSize: 13, fontWeight: '600', color: colors.warning },
+    rejectBtn: { backgroundColor: colors.errorBg, borderWidth: 1, borderColor: colors.error + '30' },
+    rejectBtnText: { fontSize: 13, fontWeight: '600', color: colors.error },
 });

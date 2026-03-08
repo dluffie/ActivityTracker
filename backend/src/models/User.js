@@ -95,6 +95,13 @@ const userSchema = new mongoose.Schema({
         default: 0
     },
 
+    // User theme preference
+    themePreference: {
+        type: String,
+        enum: ['light', 'dark', 'cyberpunk', 'brutalist'],
+        default: 'light'
+    },
+
     // AI extraction rate limiting
     aiExtractions: [{
         type: Date

@@ -52,6 +52,7 @@ export const activityAPI = {
 export const userAPI = {
     getProfile: () => API.get('/user/profile'),
     updateProfile: (data) => API.put('/user/profile', data),
+    saveTheme: (theme) => API.put('/user/theme', { theme }),
 };
 
 // ==================== TEACHER ====================

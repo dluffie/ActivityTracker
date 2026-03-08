@@ -94,6 +94,29 @@
     text-align: center;
 }
 
+/* Achievement state */
+.stat-item.stat-achieved {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.stat-item.stat-achieved .stat-value {
+    background: linear-gradient(135deg, #059669, #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-item.stat-achieved .stat-label {
+    color: #059669;
+    font-weight: 600;
+}
+
+.progress-achieved {
+    background: linear-gradient(90deg, #10b981, #34d399) !important;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
 /* Mobile styles */
 @media (max-width: 768px) {
     .sidebar {
