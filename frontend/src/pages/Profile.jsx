@@ -38,8 +38,6 @@ const Profile = () => {
         { value: 'S4', label: 'Semester 4' },
         { value: 'S5', label: 'Semester 5' },
         { value: 'S6', label: 'Semester 6' },
-        { value: 'S7', label: 'Semester 7' },
-        { value: 'S8', label: 'Semester 8' },
     ];
 
     useEffect(() => {
@@ -183,13 +181,6 @@ const Profile = () => {
                                 />
                             )}
                             <Input
-                                label="Section"
-                                name="section"
-                                value={formData.section}
-                                onChange={(e) => setFormData(prev => ({ ...prev, section: e.target.value }))}
-                                placeholder="Enter section (e.g., A, B)"
-                            />
-                            <Input
                                 label="Phone"
                                 name="phone"
                                 type="tel"
@@ -247,9 +238,9 @@ const Profile = () => {
                                     <div className="detail-row">
                                         <BookOpen size={18} />
                                         <div>
-                                            <span className="detail-label">Semester & Section</span>
+                                            <span className="detail-label">Semester</span>
                                             <span className="detail-value">
-                                                {profile.semester} {profile.section && `- Section ${profile.section}`}
+                                                {profile.semester}
                                             </span>
                                         </div>
                                     </div>

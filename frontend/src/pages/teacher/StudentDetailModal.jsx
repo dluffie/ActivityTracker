@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { teacherAPI } from '../../api';
-import { X, User, BookOpen, Award, Clock, CheckCircle, XCircle, AlertTriangle, TrendingUp } from 'lucide-react';
+import { teacherAPI, activityAPI } from '../../api';
+import { X, User, BookOpen, Award, Clock, CheckCircle, XCircle, AlertTriangle, TrendingUp, Star } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import toast from 'react-hot-toast';
 import './StudentDetailModal.css';
@@ -33,6 +33,7 @@ const TYPE_LABELS = {
 const StudentDetailModal = ({ studentId, onClose }) => {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
+    const [blogToggles, setBlogToggles] = useState({});
 
     useEffect(() => {
         if (studentId) fetchDetail();
@@ -43,6 +44,12 @@ const StudentDetailModal = ({ studentId, onClose }) => {
         try {
             const res = await teacherAPI.getStudentDetail(studentId);
             setData(res.data);
+            // Initialize blog toggle states from activity data
+            const toggles = {};
+            res.data.activities.forEach(a => {
+                toggles[a._id] = a.featuredOnBlog || false;
+            });
+            setBlogToggles(toggles);
         } catch (err) {
             toast.error('Failed to load student details');
             onClose();
@@ -55,6 +62,19 @@ const StudentDetailModal = ({ studentId, onClose }) => {
 
     const handleOverlayClick = (e) => {
         if (e.target === e.currentTarget) onClose();
+    };
+
+    const toggleBlog = async (activityId) => {
+        const newValue = !blogToggles[activityId];
+        setBlogToggles(prev => ({ ...prev, [activityId]: newValue }));
+        try {
+            await activityAPI.edit(activityId, { featuredOnBlog: newValue });
+            toast.success(newValue ? 'Added to blog!' : 'Removed from blog');
+        } catch (err) {
+            // Revert on failure
+            setBlogToggles(prev => ({ ...prev, [activityId]: !newValue }));
+            toast.error('Failed to update blog status');
+        }
     };
 
     if (loading) {
@@ -205,6 +225,15 @@ const StudentDetailModal = ({ studentId, onClose }) => {
                                                 </span>
                                             </div>
                                             <div className="sdm-log-right">
+                                                {a.status === 'approved' && (
+                                                    <button
+                                                        className={`sdm-blog-toggle ${blogToggles[a._id] ? 'active' : ''}`}
+                                                        onClick={() => toggleBlog(a._id)}
+                                                        title={blogToggles[a._id] ? 'Remove from blog' : 'Feature on blog'}
+                                                    >
+                                                        <Star size={14} fill={blogToggles[a._id] ? 'currentColor' : 'none'} />
+                                                    </button>
+                                                )}
                                                 <span className={`sdm-status-badge sdm-badge-${a.status}`}>
                                                     {a.status === 'correction_needed' ? 'Correction' : a.status}
                                                 </span>

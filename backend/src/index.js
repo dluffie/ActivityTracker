@@ -52,6 +52,18 @@ app.use("/api/teacher", teacherRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 
+// Public maintenance status check (no auth required)
+import SystemSettings from './models/SystemSettings.js';
+
+app.get("/api/maintenance-status", async (req, res) => {
+    try {
+        const settings = await SystemSettings.getSettings();
+        return res.status(200).json({ maintenance: settings.maintenanceMode });
+    } catch (error) {
+        return res.status(200).json({ maintenance: false });
+    }
+});
+
 // Health check
 app.get("/api/health", (req, res) => {
     res.status(200).json({ status: "ok", message: "Server is running" });

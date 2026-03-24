@@ -3,7 +3,26 @@
    White / Blue Professional Theme
    ============================================= */
 
+html {
+    scroll-behavior: smooth;
+}
+
 /* ==================== NAVBAR ==================== */
+
+.landing-btn-blog {
+    background: transparent;
+    color: #d97706;
+    border: 2px solid #d97706;
+    text-decoration: none;
+}
+
+.landing-btn-blog:hover {
+    background: #d97706;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
+}
+
 .landing-navbar {
     position: fixed;
     top: 0;
@@ -626,6 +645,149 @@
     margin: 0;
 }
 
+/* ==================== BLOG / ACHIEVEMENTS ==================== */
+.landing-blog {
+    padding: 5rem 2rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+}
+
+.landing-blog-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.landing-blog-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.5s ease;
+    opacity: 0;
+    transform: translateY(30px);
+    display: flex;
+    flex-direction: column;
+}
+
+.landing-blog-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.landing-blog-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+    border-color: transparent;
+}
+
+.blog-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.blog-student-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.blog-student-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.blog-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1e40af, #3b82f6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.blog-student-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.blog-student-name {
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 0.95rem;
+}
+
+.blog-student-dept {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.blog-card-body {
+    flex: 1;
+    margin-bottom: 1rem;
+}
+
+.blog-achievement-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.75rem;
+    background: linear-gradient(135deg, rgba(30, 64, 175, 0.08), rgba(59, 130, 246, 0.08));
+    color: #1e40af;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.75rem;
+}
+
+.blog-event-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.35rem;
+    line-height: 1.3;
+}
+
+.blog-activity-type {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.blog-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.blog-congrats {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.blog-points {
+    display: inline-flex;
+    padding: 0.2rem 0.6rem;
+    background: rgba(22, 163, 74, 0.1);
+    color: #16a34a;
+    font-weight: 700;
+    font-size: 0.8rem;
+    border-radius: 999px;
+}
+
 /* ==================== CTA SECTION ==================== */
 .landing-cta {
     padding: 5rem 2rem;
@@ -768,6 +930,10 @@
 
     .landing-steps::before {
         display: none;
+    }
+
+    .landing-blog-grid {
+        grid-template-columns: 1fr;
     }
 
     .landing-footer-inner {

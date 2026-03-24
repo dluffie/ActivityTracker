@@ -137,6 +137,12 @@ const activitySchema = new mongoose.Schema({
         max: 100
     },
 
+    // Blog feature flag — teacher sets this when approving
+    featuredOnBlog: {
+        type: Boolean,
+        default: false
+    },
+
     createdAt: {
         type: Date,
         default: Date.now

@@ -10,6 +10,24 @@ import { extractActivityFromDocument } from "../lib/gemini.js";
 
 const router = express.Router();
 
+// GET /api/activity/featured - Public: Get featured activities for blog
+router.get("/featured", async (req, res) => {
+    try {
+        const activities = await Activity.find({
+            featuredOnBlog: true,
+            status: "approved"
+        })
+            .sort({ verifiedAt: -1 })
+            .limit(12)
+            .populate("student", "fullName profileImage branch semester");
+
+        return res.status(200).json({ activities });
+    } catch (error) {
+        console.error("Error fetching featured activities:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
+
 // POST /api/activity/ai-extract - Extract activity details from document using AI
 router.post("/ai-extract", protectRoute, async (req, res) => {
     try {
@@ -357,7 +375,7 @@ router.get("/:id", protectRoute, async (req, res) => {
 // POST /api/activity/approve/:id - Approve activity
 router.post("/approve/:id", protectRoute, isTeacherOrAdmin, async (req, res) => {
     try {
-        const { pointsAssigned, comments } = req.body;
+        const { pointsAssigned, comments, featuredOnBlog } = req.body;
 
         const activity = await Activity.findById(req.params.id)
             .populate("student");
@@ -376,6 +394,7 @@ router.post("/approve/:id", protectRoute, isTeacherOrAdmin, async (req, res) => 
         activity.teacherComments = comments || "";
         activity.verifiedBy = req.user._id;
         activity.verifiedAt = new Date();
+        if (featuredOnBlog !== undefined) activity.featuredOnBlog = featuredOnBlog;
         await activity.save();
 
         // Update student's total points
@@ -413,7 +432,7 @@ router.post("/approve/:id", protectRoute, isTeacherOrAdmin, async (req, res) => 
 // PUT /api/activity/edit/:id - Edit approved activity (update points/comments)
 router.put("/edit/:id", protectRoute, isTeacherOrAdmin, async (req, res) => {
     try {
-        const { pointsAssigned, teacherComments } = req.body;
+        const { pointsAssigned, teacherComments, featuredOnBlog } = req.body;
 
         const activity = await Activity.findById(req.params.id)
             .populate("student");
@@ -434,6 +453,9 @@ router.put("/edit/:id", protectRoute, isTeacherOrAdmin, async (req, res) => {
         activity.pointsAssigned = newPoints;
         if (teacherComments !== undefined) {
             activity.teacherComments = teacherComments;
+        }
+        if (featuredOnBlog !== undefined) {
+            activity.featuredOnBlog = featuredOnBlog;
         }
         await activity.save();
 

@@ -20,18 +20,21 @@ const auditLogSchema = new mongoose.Schema({
             "activity_approve",
             "activity_reject",
             "activity_correction",
+            "activity_edit",
             "rule_create",
             "rule_update",
             "rule_delete",
             "class_subscribe",
+            "class_data_delete",
             "send_reminder",
             "bulk_upload",
+            "settings_update",
             "admin_action"
         ]
     },
     targetType: {
         type: String,
-        enum: ["User", "Activity", "Rule", "Notification", "System"],
+        enum: ["User", "Activity", "Rule", "Notification", "System", "SystemSettings"],
         required: true
     },
     targetId: {

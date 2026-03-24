@@ -33,6 +33,10 @@ api.interceptors.response.use(
             localStorage.removeItem('user');
             window.location.href = '/login';
         }
+        // Maintenance mode — broadcast event so App can show maintenance screen
+        if (error.response?.status === 503 && error.response?.data?.maintenance) {
+            window.dispatchEvent(new Event('maintenance-mode'));
+        }
         return Promise.reject(error);
     }
 );
@@ -62,6 +66,7 @@ export const activityAPI = {
     requestCorrection: (id, data) => api.post(`/activity/correction/${id}`, data),
     edit: (id, data) => api.put(`/activity/edit/${id}`, data),
     getStats: () => api.get('/activity/stats/me'),
+    getFeatured: () => api.get('/activity/featured'),
 };
 
 // User API
@@ -85,6 +90,8 @@ export const teacherAPI = {
     verifyStudent: (studentId) => api.post(`/teacher/verify-student/${studentId}`),
     rejectVerification: (studentId, reason) => api.post(`/teacher/reject-verification/${studentId}`, { reason }),
     getStudentDetail: (studentId) => api.get(`/teacher/student-detail/${studentId}`),
+    getClassReport: (params) => api.get('/teacher/class-report', { params }),
+    deleteClassData: (data) => api.delete('/teacher/class-data', { data }),
 };
 
 // Admin API
@@ -99,6 +106,8 @@ export const adminAPI = {
     deleteUser: (id) => api.delete(`/admin/users/${id}`),
     getStats: () => api.get('/admin/stats'),
     getAuditLogs: (params) => api.get('/admin/audit-logs', { params }),
+    getSettings: () => api.get('/admin/settings'),
+    updateSettings: (data) => api.put('/admin/settings', data),
 };
 
 // Notification API

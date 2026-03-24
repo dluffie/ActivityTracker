@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import SystemSettings from "../models/SystemSettings.js";
 
 // Verify JWT token
 export const protectRoute = async (req, res, next) => {
@@ -22,6 +23,22 @@ export const protectRoute = async (req, res, next) => {
 
         if (!user.verified) {
             return res.status(401).json({ message: "Account not verified" });
+        }
+
+        // Check maintenance mode — allow admins through
+        if (user.role !== "admin") {
+            try {
+                const settings = await SystemSettings.getSettings();
+                if (settings.maintenanceMode) {
+                    return res.status(503).json({
+                        message: "System is under maintenance. Please try again later.",
+                        maintenance: true
+                    });
+                }
+            } catch (e) {
+                // If settings check fails, don't block the request
+                console.error("Maintenance check failed:", e);
+            }
         }
 
         req.user = user;

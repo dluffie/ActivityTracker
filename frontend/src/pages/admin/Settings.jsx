@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import { Card, Button, Input } from '../../components/ui';
+import { useState, useEffect } from 'react';
+import { Card, Button, Input, Loading } from '../../components/ui';
 import { Settings, Save, Database, Mail, Shield, Bell } from 'lucide-react';
+import { adminAPI } from '../../api';
 import toast from 'react-hot-toast';
 import './Settings.css';
 
 const AdminSettings = () => {
     const [saving, setSaving] = useState(false);
+    const [loadingSettings, setLoadingSettings] = useState(true);
     const [settings, setSettings] = useState({
         systemName: 'Activity Point Management System',
         requiredPoints: '60',
@@ -14,6 +16,30 @@ const AdminSettings = () => {
         autoApprove: false,
         maintenanceMode: false,
     });
+
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const fetchSettings = async () => {
+        setLoadingSettings(true);
+        try {
+            const response = await adminAPI.getSettings();
+            const s = response.data.settings;
+            setSettings({
+                systemName: s.systemName || 'Activity Point Management System',
+                requiredPoints: String(s.requiredPoints || 60),
+                maxFileSize: String(s.maxFileSize || 10),
+                emailNotifications: s.emailNotifications ?? true,
+                autoApprove: s.autoApprove ?? false,
+                maintenanceMode: s.maintenanceMode ?? false,
+            });
+        } catch (error) {
+            toast.error('Failed to load settings');
+        } finally {
+            setLoadingSettings(false);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -26,15 +52,41 @@ const AdminSettings = () => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            // Simulated save
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await adminAPI.updateSettings(settings);
             toast.success('Settings saved successfully!');
         } catch (error) {
-            toast.error('Failed to save settings');
+            toast.error(error.response?.data?.message || 'Failed to save settings');
         } finally {
             setSaving(false);
         }
     };
+
+    const handleMaintenanceToggle = async (e) => {
+        const enabled = e.target.checked;
+        const newSettings = { ...settings, maintenanceMode: enabled };
+        setSettings(newSettings);
+
+        try {
+            await adminAPI.updateSettings(newSettings);
+            if (enabled) {
+                toast('⚠️ Maintenance Mode ENABLED — all non-admin users are blocked!', {
+                    icon: '🔧',
+                    duration: 5000,
+                    style: { background: '#fef3c7', color: '#92400e', border: '1px solid #f59e0b' }
+                });
+            } else {
+                toast.success('Maintenance Mode disabled — site is live again.');
+            }
+        } catch (error) {
+            // Revert on failure
+            setSettings(prev => ({ ...prev, maintenanceMode: !enabled }));
+            toast.error('Failed to update maintenance mode');
+        }
+    };
+
+    if (loadingSettings) {
+        return <Loading fullScreen text="Loading settings..." />;
+    }
 
     return (
         <div className="admin-settings">
@@ -137,7 +189,7 @@ const AdminSettings = () => {
                                 type="checkbox"
                                 name="maintenanceMode"
                                 checked={settings.maintenanceMode}
-                                onChange={handleChange}
+                                onChange={handleMaintenanceToggle}
                                 className="toggle-input"
                             />
                             <span className="toggle-switch"></span>

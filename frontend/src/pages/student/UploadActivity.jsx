@@ -111,6 +111,7 @@ const UploadActivity = () => {
     const [uploadMode, setUploadMode] = useState('manual');
     const [filePreview, setFilePreview] = useState(null);
     const [submitted, setSubmitted] = useState(false);
+    const [showAiWarning, setShowAiWarning] = useState(false);
 
     const [formData, setFormData] = useState({
         activityType: '',
@@ -540,7 +541,7 @@ const UploadActivity = () => {
                             <button
                                 type="button"
                                 className="ai-extract-btn"
-                                onClick={() => { playClick(); handleAIExtract(); }}
+                                onClick={() => { playClick(); setShowAiWarning(true); }}
                                 onMouseEnter={playHover}
                                 disabled={aiLoading}
                             >
@@ -588,6 +589,40 @@ const UploadActivity = () => {
                                 <span></span>
                                 <span></span>
                                 <span></span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* AI Warning Popup */}
+                {showAiWarning && (
+                    <div className="ai-warning-overlay" onClick={() => setShowAiWarning(false)}>
+                        <div className="ai-warning-dialog" onClick={(e) => e.stopPropagation()}>
+                            <div className="ai-warning-icon">⚠️</div>
+                            <h3>AI Extraction Notice</h3>
+                            <p>
+                                AI can make mistakes. Please review the extracted data carefully
+                                and make any necessary corrections before submitting your activity.
+                            </p>
+                            <div className="ai-warning-actions">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => setShowAiWarning(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary ai-warning-ok-btn"
+                                    onClick={() => {
+                                        setShowAiWarning(false);
+                                        handleAIExtract();
+                                    }}
+                                >
+                                    <Sparkles size={16} />
+                                    OK, Extract
+                                </button>
                             </div>
                         </div>
                     </div>

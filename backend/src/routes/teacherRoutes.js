@@ -7,6 +7,7 @@ import Notification from "../models/Notification.js";
 import AuditLog from "../models/AuditLog.js";
 import { protectRoute, isTeacher, isTeacherOrAdmin } from "../middleware/auth.js";
 import { BRANCHES, SEMESTERS, SECTIONS } from "./authRoutes.js";
+import cloudinary from "../lib/cloudinary.js";
 
 const router = express.Router();
 
@@ -504,7 +505,7 @@ router.get("/student-detail/:studentId", protectRoute, isTeacherOrAdmin, async (
         // Get all activities for this student
         const activities = await Activity.find({ student: studentId })
             .sort({ createdAt: -1 })
-            .select("activityType eventName level position status pointsSuggested pointsAssigned startDate endDate teacherComments createdAt");
+            .select("activityType eventName level position status pointsSuggested pointsAssigned startDate endDate teacherComments featuredOnBlog createdAt");
 
         // Aggregate stats
         const stats = {
@@ -531,6 +532,128 @@ router.get("/student-detail/:studentId", protectRoute, isTeacherOrAdmin, async (
 
     } catch (error) {
         console.error("Error fetching student detail:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
+// GET /api/teacher/class-report - Get student data for PDF report
+router.get("/class-report", protectRoute, isTeacherOrAdmin, async (req, res) => {
+    try {
+        const { branch, semester } = req.query;
+
+        if (!branch || !semester) {
+            return res.status(400).json({ message: "Branch and semester are required" });
+        }
+
+        const students = await User.find({
+            role: "student",
+            branch: branch.toUpperCase(),
+            semester: semester.toUpperCase()
+        })
+            .select("registrationNumber fullName totalPoints")
+            .sort({ registrationNumber: 1 });
+
+        return res.status(200).json({
+            students,
+            branch: branch.toUpperCase(),
+            semester: semester.toUpperCase(),
+            total: students.length
+        });
+
+    } catch (error) {
+        console.error("Error fetching class report:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
+// DELETE /api/teacher/class-data - Delete all data for S6 (final year) class
+router.delete("/class-data", protectRoute, isTeacherOrAdmin, async (req, res) => {
+    try {
+        const { branch, semester } = req.body;
+
+        if (!branch || !semester) {
+            return res.status(400).json({ message: "Branch and semester are required" });
+        }
+
+        // Only allow deletion for S6 (final year)
+        if (semester.toUpperCase() !== "S6") {
+            return res.status(403).json({
+                message: "Data deletion is only allowed for Semester 6 (S6) — final year students."
+            });
+        }
+
+        // Find all students in this class
+        const students = await User.find({
+            role: "student",
+            branch: branch.toUpperCase(),
+            semester: "S6"
+        });
+
+        if (students.length === 0) {
+            return res.status(404).json({ message: "No students found in this class" });
+        }
+
+        const studentIds = students.map(s => s._id);
+        let deletedImages = 0;
+
+        // Delete activity documents from Cloudinary
+        const activities = await Activity.find({ student: { $in: studentIds } });
+
+        for (const activity of activities) {
+            if (activity.docPublicId) {
+                try {
+                    await cloudinary.uploader.destroy(activity.docPublicId);
+                    deletedImages++;
+                } catch (e) {
+                    console.error(`Failed to delete Cloudinary doc: ${activity.docPublicId}`, e);
+                }
+            }
+        }
+
+        // Delete profile images from Cloudinary
+        for (const student of students) {
+            if (student.profileImage && student.profileImage.includes("cloudinary")) {
+                try {
+                    // Extract public_id from Cloudinary URL
+                    const urlParts = student.profileImage.split("/");
+                    const uploadIndex = urlParts.indexOf("upload");
+                    if (uploadIndex !== -1) {
+                        // Get everything after "upload/v{version}/" and remove file extension
+                        const publicId = urlParts.slice(uploadIndex + 2).join("/").replace(/\.[^/.]+$/, "");
+                        await cloudinary.uploader.destroy(publicId);
+                        deletedImages++;
+                    }
+                } catch (e) {
+                    console.error(`Failed to delete profile image for ${student.fullName}`, e);
+                }
+            }
+        }
+
+        // Delete all activities for these students
+        const deletedActivities = await Activity.deleteMany({ student: { $in: studentIds } });
+
+        // Delete the students
+        const deletedStudents = await User.deleteMany({ _id: { $in: studentIds } });
+
+        // Audit log
+        await AuditLog.create({
+            actor: req.user._id,
+            action: "class_data_delete",
+            targetType: "User",
+            description: `Deleted S6 class data: ${branch.toUpperCase()} — ${deletedStudents.deletedCount} students, ${deletedActivities.deletedCount} activities, ${deletedImages} cloud images`
+        });
+
+        return res.status(200).json({
+            message: `Successfully deleted data for ${branch.toUpperCase()} S6`,
+            deleted: {
+                students: deletedStudents.deletedCount,
+                activities: deletedActivities.deletedCount,
+                cloudImages: deletedImages
+            }
+        });
+
+    } catch (error) {
+        console.error("Error deleting class data:", error);
         return res.status(500).json({ message: "Server error", error: error.message });
     }
 });

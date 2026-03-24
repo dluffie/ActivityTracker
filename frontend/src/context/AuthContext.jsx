@@ -54,8 +54,12 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setIsAuthenticated(true);
 
-        // Fire-and-forget: transition handles cycling + final theme lock internally
-        playThemeTransition(userData.themePreference || 'light');
+        // Theme transition only for students; teachers/admins just load their theme
+        if (userData.role === 'student') {
+            playThemeTransition(userData.themePreference || 'light');
+        } else {
+            loadUserTheme(userData.themePreference || 'light');
+        }
 
         return userData;
     };
@@ -75,8 +79,12 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setIsAuthenticated(true);
 
-        // Fire-and-forget: transition handles cycling + final theme lock internally
-        playThemeTransition(userData.themePreference || 'light');
+        // Theme transition only for students; teachers/admins just load their theme
+        if (userData.role === 'student') {
+            playThemeTransition(userData.themePreference || 'light');
+        } else {
+            loadUserTheme(userData.themePreference || 'light');
+        }
 
         return userData;
     };

@@ -4,6 +4,7 @@ import Rule from "../models/Rule.js";
 import Activity from "../models/Activity.js";
 import AuditLog from "../models/AuditLog.js";
 import Notification from "../models/Notification.js";
+import SystemSettings from "../models/SystemSettings.js";
 import { protectRoute, isAdmin } from "../middleware/auth.js";
 import bcrypt from "bcryptjs";
 
@@ -363,6 +364,49 @@ router.get("/audit-logs", protectRoute, isAdmin, async (req, res) => {
 
     } catch (error) {
         console.error("Error fetching audit logs:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
+// ==================== SYSTEM SETTINGS ====================
+
+// GET /api/admin/settings - Get system settings
+router.get("/settings", protectRoute, isAdmin, async (req, res) => {
+    try {
+        const settings = await SystemSettings.getSettings();
+        return res.status(200).json({ settings });
+    } catch (error) {
+        console.error("Error fetching settings:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
+// PUT /api/admin/settings - Update system settings
+router.put("/settings", protectRoute, isAdmin, async (req, res) => {
+    try {
+        const { systemName, requiredPoints, maxFileSize, emailNotifications, autoApprove, maintenanceMode } = req.body;
+
+        const updates = {};
+        if (systemName !== undefined) updates.systemName = systemName;
+        if (requiredPoints !== undefined) updates.requiredPoints = parseInt(requiredPoints);
+        if (maxFileSize !== undefined) updates.maxFileSize = parseInt(maxFileSize);
+        if (emailNotifications !== undefined) updates.emailNotifications = emailNotifications;
+        if (autoApprove !== undefined) updates.autoApprove = autoApprove;
+        if (maintenanceMode !== undefined) updates.maintenanceMode = maintenanceMode;
+
+        const settings = await SystemSettings.updateSettings(updates);
+
+        await AuditLog.create({
+            actor: req.user._id,
+            action: "settings_update",
+            targetType: "SystemSettings",
+            description: `Updated system settings${maintenanceMode !== undefined ? ` (maintenance: ${maintenanceMode})` : ''}`
+        });
+
+        return res.status(200).json({ message: "Settings updated", settings });
+
+    } catch (error) {
+        console.error("Error updating settings:", error);
         return res.status(500).json({ message: "Server error", error: error.message });
     }
 });

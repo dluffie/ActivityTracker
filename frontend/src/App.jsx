@@ -1,9 +1,11 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Layout } from './components/layout';
 import { Loading } from './components/ui';
+import MaintenancePage from './pages/MaintenancePage';
 
 // Auth Pages
 import { Login, Signup, ForgotPassword } from './pages/auth';
@@ -156,6 +158,51 @@ function AppRoutes() {
 }
 
 function App() {
+  const [isMaintenance, setIsMaintenance] = useState(false);
+  const [maintenanceChecked, setMaintenanceChecked] = useState(false);
+
+  useEffect(() => {
+    // Check maintenance status FIRST before anything else
+    const checkMaintenance = async () => {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${API_URL}/maintenance-status`);
+        const data = await res.json();
+        if (data.maintenance) {
+          // Check if current user is admin (they bypass maintenance)
+          const savedUser = localStorage.getItem('user');
+          if (savedUser) {
+            const user = JSON.parse(savedUser);
+            if (user.role === 'admin') {
+              setIsMaintenance(false);
+              setMaintenanceChecked(true);
+              return;
+            }
+          }
+          setIsMaintenance(true);
+        }
+      } catch {
+        // If check fails, don't block the app
+      }
+      setMaintenanceChecked(true);
+    };
+
+    checkMaintenance();
+
+    // Also listen for 503 responses during the session
+    const handleMaintenance = () => setIsMaintenance(true);
+    window.addEventListener('maintenance-mode', handleMaintenance);
+    return () => window.removeEventListener('maintenance-mode', handleMaintenance);
+  }, []);
+
+  if (isMaintenance) {
+    return <MaintenancePage />;
+  }
+
+  if (!maintenanceChecked) {
+    return null; // Brief blank while checking — no loading spinner flash
+  }
+
   return (
     <BrowserRouter>
       <ThemeProvider>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     ClipboardCheck,
@@ -16,9 +16,13 @@ import {
 } from 'lucide-react';
 import './LandingPage.css';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const LandingPage = () => {
     const featureCardsRef = useRef([]);
     const stepsRef = useRef([]);
+    const blogCardsRef = useRef([]);
+    const [featuredActivities, setFeaturedActivities] = useState([]);
 
     useEffect(() => {
         // IntersectionObserver for scroll-triggered animations
@@ -41,7 +45,25 @@ const LandingPage = () => {
             if (step) observer.observe(step);
         });
 
+        blogCardsRef.current.forEach((card) => {
+            if (card) observer.observe(card);
+        });
+
         return () => observer.disconnect();
+    }, [featuredActivities]);
+
+    // Fetch featured activities for blog section
+    useEffect(() => {
+        const fetchFeatured = async () => {
+            try {
+                const response = await fetch(`${API_URL}/activity/featured`);
+                const data = await response.json();
+                setFeaturedActivities(data.activities || []);
+            } catch (error) {
+                console.error('Failed to fetch featured activities:', error);
+            }
+        };
+        fetchFeatured();
     }, []);
 
     return (
@@ -58,6 +80,11 @@ const LandingPage = () => {
                     </div>
                 </div>
                 <div className="landing-navbar-actions">
+                    {featuredActivities.length > 0 && (
+                        <a href="#achievements" className="landing-btn landing-btn-blog">
+                            <Award size={16} /> Achievements
+                        </a>
+                    )}
                     <Link to="/login" className="landing-btn landing-btn-login">
                         <LogIn size={16} /> Login
                     </Link>
@@ -258,6 +285,69 @@ const LandingPage = () => {
                     </div>
                 </div>
             </section>
+
+            {/* ========== STUDENT ACHIEVEMENTS / BLOG ========== */}
+            {featuredActivities.length > 0 && (
+                <section className="landing-blog" id="achievements">
+                    <div className="landing-section-header">
+                        <span className="landing-section-tag">🏆 Achievements</span>
+                        <h3>Student Spotlight</h3>
+                        <p>
+                            Celebrating the outstanding achievements of our students.
+                            These accomplishments have been verified and recognized by our faculty.
+                        </p>
+                    </div>
+
+                    <div className="landing-blog-grid">
+                        {featuredActivities.map((activity, index) => (
+                            <div
+                                key={activity._id}
+                                className="landing-blog-card"
+                                ref={(el) => (blogCardsRef.current[index] = el)}
+                            >
+                                <div className="blog-card-header">
+                                    <div className="blog-student-avatar">
+                                        {activity.student?.profileImage ? (
+                                            <img
+                                                src={activity.student.profileImage}
+                                                alt={activity.student.fullName}
+                                            />
+                                        ) : (
+                                            <div className="blog-avatar-placeholder">
+                                                {activity.student?.fullName?.charAt(0) || '?'}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="blog-student-info">
+                                        <span className="blog-student-name">
+                                            {activity.student?.fullName}
+                                        </span>
+                                        <span className="blog-student-dept">
+                                            {activity.student?.branch} — Sem {activity.student?.semester}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="blog-card-body">
+                                    <div className="blog-achievement-badge">
+                                        <Award size={14} />
+                                        {activity.level?.charAt(0).toUpperCase() + activity.level?.slice(1)} Level
+                                    </div>
+                                    <h4 className="blog-event-name">{activity.eventName}</h4>
+                                    <p className="blog-activity-type">
+                                        {activity.activityType?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                        {activity.position && activity.position !== '' && ` • ${activity.position.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
+                                    </p>
+                                </div>
+                                <div className="blog-card-footer">
+                                    <span className="blog-congrats">
+                                        🎉 Congratulations on this achievement!
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             {/* ========== CTA SECTION ========== */}
             <section className="landing-cta">

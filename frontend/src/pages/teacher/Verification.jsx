@@ -11,7 +11,8 @@ import {
     Filter,
     FileText,
     Calendar,
-    User
+    User,
+    Award
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './Verification.css';
@@ -34,6 +35,7 @@ const Verification = () => {
     const [showModal, setShowModal] = useState(false);
     const [actionLoading, setActionLoading] = useState(null); // null | 'approve' | 'reject' | 'correction' | 'edit'
     const [actionData, setActionData] = useState({ points: '', remarks: '' });
+    const [featuredOnBlog, setFeaturedOnBlog] = useState(false);
 
     useEffect(() => {
         fetchActivities();
@@ -63,7 +65,8 @@ const Verification = () => {
 
     const handleViewActivity = (activity) => {
         setSelectedActivity(activity);
-        setActionData({ points: activity.pointsAssigned || '', remarks: '' });
+        setActionData({ points: activity.pointsAssigned || activity.pointsSuggested || '', remarks: '' });
+        setFeaturedOnBlog(activity.featuredOnBlog || false);
         setShowModal(true);
     };
 
@@ -78,6 +81,7 @@ const Verification = () => {
             await activityAPI.approve(selectedActivity._id, {
                 pointsAssigned: parseInt(actionData.points),
                 comments: actionData.remarks,
+                featuredOnBlog,
             });
             toast.success('Activity approved!');
             setShowModal(false);
@@ -365,6 +369,17 @@ const Verification = () => {
                                             onChange={(e) => setActionData(prev => ({ ...prev, remarks: e.target.value }))}
                                             placeholder="Enter remarks..."
                                         />
+                                    </div>
+                                    <div className="action-buttons">
+                                        <label className="blog-toggle">
+                                            <input
+                                                type="checkbox"
+                                                checked={featuredOnBlog}
+                                                onChange={(e) => setFeaturedOnBlog(e.target.checked)}
+                                            />
+                                            <Award size={14} />
+                                            <span>Feature on Blog</span>
+                                        </label>
                                     </div>
                                     <div className="action-buttons">
                                         <Button
