@@ -169,17 +169,18 @@ function App() {
         const res = await fetch(`${API_URL}/maintenance-status`);
         const data = await res.json();
         if (data.maintenance) {
-          // Check if current user is admin (they bypass maintenance)
+          // Only block logged-in non-admin users
+          // Public pages (landing, login, signup, forgot-password) must stay accessible
           const savedUser = localStorage.getItem('user');
           if (savedUser) {
             const user = JSON.parse(savedUser);
-            if (user.role === 'admin') {
-              setIsMaintenance(false);
-              setMaintenanceChecked(true);
-              return;
+            if (user.role !== 'admin') {
+              // Logged-in student/teacher → show maintenance
+              setIsMaintenance(true);
             }
+            // Admin → bypass maintenance
           }
-          setIsMaintenance(true);
+          // Not logged in → let them through to access login/landing
         }
       } catch {
         // If check fails, don't block the app
@@ -189,8 +190,17 @@ function App() {
 
     checkMaintenance();
 
-    // Also listen for 503 responses during the session
-    const handleMaintenance = () => setIsMaintenance(true);
+    // Also listen for 503 responses during active sessions
+    const handleMaintenance = () => {
+      // Only show maintenance page if logged-in as non-admin
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        const user = JSON.parse(savedUser);
+        if (user.role !== 'admin') {
+          setIsMaintenance(true);
+        }
+      }
+    };
     window.addEventListener('maintenance-mode', handleMaintenance);
     return () => window.removeEventListener('maintenance-mode', handleMaintenance);
   }, []);
